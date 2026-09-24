@@ -234,8 +234,8 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
 - [ ] Vercel project + Neon integration (per-preview branching off, compute capped at 0.25 CU)
 - [x] Vercel A/CNAME in Cloudflare (DNS only) + `www` → apex redirect
 - [ ] Prod env vars, including the existing encryption key from the password manager
-- [ ] Resend webhook (prod) + `RESEND_WEBHOOK_SECRET`
-- [ ] R2 bucket + token + backup Action + one restore drill
+- [x] Resend webhook (prod) + `RESEND_WEBHOOK_SECRET`
+- [x] R2 bucket + token + backup Action + one restore drill
 - [x] `security.txt`, Vercel Web Analytics on
 - [ ] **Tighten DMARC to `p=quarantine` ~2026-10-15 to 2026-10-22** (the reminder is in the owner's calendar)
 - [x] Nameservers → Cloudflare, Cloudflare MFA, Email Routing, DMARC `p=none`, Resend domain verified, restricted Resend keys, prod encryption key backed up
