@@ -18,6 +18,8 @@ Letters to your future self, emailed on a chosen date. One Next.js app on Vercel
 
 `package.json` already holds the repo tooling (husky, commitlint, `"prepare": "husky"`). When scaffolding Next.js, generate into a temp dir and merge deps/scripts into the existing file; keep `prepare`, and add `lint`, `typecheck` and `test` scripts so the pre-commit hook runs them.
 
+Tests use `node --test` with native type stripping, so a test imports its module with the `.ts` extension. `AGENTS.md` holds the Next.js version notes that `next dev` manages: @AGENTS.md
+
 ## Workflow
 
 1. Branch from `main` (`feat/…`, `fix/…`, `chore/…`, `docs/…`).

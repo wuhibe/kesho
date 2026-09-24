@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// SPEC §4. The `author` relation (onDelete: Cascade) to better-auth's `User`
+// lands with Build 2, when `npx auth@latest generate` adds the auth models.
+enum LetterStatus {
+  PENDING
+  SCHEDULED
+  SENDING
+  DELIVERED
+  UNDELIVERABLE
+}
+
+model Letter {
+  id            String       @id @default(cuid())
+  authorId      String
+  subject       String? // lib/encryption.ts format; plaintext ≤150
+  body          String // lib/encryption.ts format; plaintext ≤20,000
+  deliveryDate  DateTime     @db.Date
+  timeZone      String // IANA, from Intl.DateTimeFormat().resolvedOptions().timeZone
+  status        LetterStatus @default(PENDING)
+  attempts      Int          @default(0)
+  lastError     String?
+  claimedAt     DateTime?
+  resendEmailId String?
+  deliveredAt   DateTime?
+  createdAt     DateTime     @default(now())
+
+  @@index([status, deliveryDate])
+}
+
+// Dedupes Resend/svix webhook deliveries.
+model WebhookEvent {
+  id         String   @id // svix-id
+  receivedAt DateTime @default(now())
+}

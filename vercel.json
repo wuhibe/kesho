@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "([ \"$VERCEL_ENV\" != production ] || (pnpm check:key && prisma migrate deploy)) && next build"
+}
