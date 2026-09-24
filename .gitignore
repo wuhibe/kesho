@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.vercel/
+.env*
+!.env.example
+# local-only: design reference and Claude Code worktrees/settings
+givingli-design/
+.claude/worktrees/
+.claude/settings.local.json
