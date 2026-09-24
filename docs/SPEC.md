@@ -65,6 +65,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
   - Zeyada for the salutation only, with `font-synthesis: none`
 - **Motion:** respect `prefers-reduced-motion`.
 - **Brand:** don't copy the givingli brand or its fonts.
+- **Logo mark:** "Tomorrow's sun": a paper `#faf7f1` half sun over two horizon bars on a red `#c42121` rounded square. The files are `app/icon.svg` (master), `app/favicon.ico` (16/32/48) and `app/apple-icon.png` (180, full-bleed; iOS rounds it). Next.js serves them by file convention, so no `<link>` tags are needed.
 
 **Copy strings:**
 - **20-letter cap:** "You have 20 sealed letters, the most we hold at once. Let one arrive or cancel one to write another."
