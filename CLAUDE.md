@@ -40,6 +40,13 @@ Tests use `node --test` with native type stripping, so a test imports its module
 - Server by default: React Server Components and Server Actions; add `'use client'` only to the smallest component that owns state or handles browser events.
 - Reuse before writing: search the codebase, then the platform (native inputs, CSS, Postgres constraints), then installed deps. Add a dependency only when it removes real code.
 
+**Components**
+- One component per file, the file named after it in kebab-case (`SubmitButton` → `submit-button.tsx`). Shared UI lives in `components/`; a component used by one route sits beside its `page.tsx`. Non-component helpers go in a `.ts` file.
+- Named exports only. Default exports are only for the files Next.js requires them from (`page.tsx`, `layout.tsx`): declare the component, then `export default Page;` at the end.
+- Declare components as typed arrow functions: `const Field: FC<{ label: string } & ComponentProps<"input">> = ({ label, ...input }) => …`. Pages too: `const Page: FC<PageProps<"/route">> = async ({ searchParams }) => …`.
+- Import React types by name (`import type { FC, ReactNode } from "react"`); never write `React.ReactNode`.
+- ESLint enforces all of this except the `FC` annotation (`eslint.config.mjs`).
+
 **Naming**
 - Names say intent in domain language: `sealLetter`, `isDue`, `releaseStaleClaims`.
 - Booleans read as questions (`isVerified`, `hasReachedCap`); units in names where ambiguous (`timeoutMs`).

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { FC } from "react";
 import { Fragment_Mono, Instrument_Sans, Newsreader, Zeyada } from "next/font/google";
 import "./globals.css";
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   description: "Write a letter to your future self. We'll seal it and email it to you on the day you choose.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+const RootLayout: FC<LayoutProps<"/">> = ({ children }) => {
   return (
     <html
       lang="en"
@@ -25,4 +26,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-dvh font-sans antialiased">{children}</body>
     </html>
   );
-}
+};
+
+export default RootLayout;
