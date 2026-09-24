@@ -3,6 +3,9 @@ import { Resend } from "resend";
 import { routeEmail } from "@/lib/email-redirect";
 
 export type Email = { subject: string; react: ReactElement };
+export type DeliveryEmail = Email & { from: string };
+/** What sending one delivery email came to; `error` is Resend's error name. */
+export type SendResult = { ok: true; emailId: string } | { ok: false; isQuota: boolean; error: string };
 
 // Resend renders `react` and derives the plain-text part itself (SPEC §8).
 export async function sendAccountEmail(to: string, { subject, react }: Email): Promise<void> {
@@ -17,6 +20,26 @@ export async function sendAccountEmail(to: string, { subject, react }: Email): P
   // Error names only: Resend messages can echo the recipient address.
   if (error) throw new Error(`Resend rejected an account email: ${error.name}`);
   console.info(`account email sent: ${data.id}`);
+}
+
+/**
+ * Sends one Letter's delivery email. The idempotency key turns a repeated send of the same
+ * attempt into a no-op at Resend (SPEC §7 step 6). Failures are returned, not thrown, so the
+ * run can apply its retry rules.
+ */
+export async function sendDeliveryEmail(
+  to: string,
+  { from, subject, react }: DeliveryEmail,
+  idempotencyKey: string,
+): Promise<SendResult> {
+  const routed = routeEmail(to, subject);
+  const { data, error } = await resend().emails.send(
+    { from, replyTo: "hello@kesho.et", to: routed.to, subject: routed.subject, react },
+    { idempotencyKey },
+  );
+  // Error names only: Resend messages can echo the recipient address.
+  if (error) return { ok: false, isQuota: error.statusCode === 429, error: error.name };
+  return { ok: true, emailId: data.id };
 }
 
 // Built per send so a missing key fails the send, not the build.

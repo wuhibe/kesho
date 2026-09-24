@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { LetterStatus } from "@/lib/generated/prisma/client";
-import { fromUtcDate, toUtcDate } from "@/lib/delivery-date";
+import { addDays, fromUtcDate, isDue, todayIn, toUtcDate } from "@/lib/delivery-date";
+import type { DeliveryUpdate } from "@/lib/delivery-rules";
 import { decrypt, encrypt } from "@/lib/encryption";
 import type { LetterInput } from "@/lib/letter-input";
 import { initialStatus, type SealingAuthor, sealOutcome } from "@/lib/seal-rules";
@@ -9,6 +10,7 @@ import { initialStatus, type SealingAuthor, sealOutcome } from "@/lib/seal-rules
 
 const SEALED_STATUSES = ["PENDING", "SCHEDULED"] satisfies LetterStatus[];
 const ARCHIVED_STATUSES = ["DELIVERED", "UNDELIVERABLE"] satisfies LetterStatus[];
+const CLAIM_TIMEOUT_MS = 60 * 60 * 1000;
 
 export type SealedLetter = {
   id: string;
@@ -128,6 +130,74 @@ export async function deleteLetter(id: string, authorId: string): Promise<boolea
   return count > 0;
 }
 
-function decryptSubject(subject: string | null): string | null {
+/**
+ * SENDING Letters claimed over an hour ago go back to SCHEDULED: the run that claimed them died
+ * mid-send (SPEC §7 step 2). Their resend reuses the same idempotency key, but Resend keeps keys
+ * for 24 h and this runs daily, so a send that went through just before the run died can repeat.
+ */
+export async function releaseStaleClaims(now: Date): Promise<number> {
+  const { count } = await db.letter.updateMany({
+    where: { status: "SENDING", claimedAt: { lt: new Date(now.getTime() - CLAIM_TIMEOUT_MS) } },
+    data: { status: "SCHEDULED" },
+  });
+  return count;
+}
+
+/** Delivery emails sent since midnight UTC, for the run's budget (SPEC §7 step 4). */
+export async function countDeliveredToday(now: Date): Promise<number> {
+  return db.letter.count({ where: { deliveredAt: { gte: toUtcDate(todayIn("UTC", now)) } } });
+}
+
+/** A Letter the run holds as SENDING, still encrypted, with its Author's email read at send time (SPEC §5). */
+export type ClaimedLetter = {
+  id: string;
+  subject: string | null;
+  body: string;
+  deliveryDate: Date;
+  timeZone: string;
+  createdAt: Date;
+  attempts: number;
+  email: string;
+};
+
+/**
+ * Claims up to `budget` due Letters, soonest first, as SENDING (SPEC §7 step 5). SKIP LOCKED
+ * and the status re-check let a doubled run pass over whatever this one holds.
+ */
+export async function claimDueLetters(now: Date, budget: number): Promise<ClaimedLetter[]> {
+  if (budget === 0) return [];
+  // No timezone is a whole day ahead of UTC, so nothing dated after UTC's tomorrow can be due.
+  const candidates = await db.letter.findMany({
+    where: { status: "SCHEDULED", deliveryDate: { lte: toUtcDate(addDays(todayIn("UTC", now), 1)) } },
+    select: { id: true, deliveryDate: true, timeZone: true },
+  });
+  const dueIds = candidates
+    .filter((letter) => isDue({ deliveryDate: fromUtcDate(letter.deliveryDate), timeZone: letter.timeZone }, now))
+    .map((letter) => letter.id);
+  if (dueIds.length === 0) return [];
+
+  return db.$queryRaw<ClaimedLetter[]>`
+    UPDATE "Letter" SET status = 'SENDING', "claimedAt" = ${now}
+    WHERE id IN (
+      SELECT id FROM "Letter"
+      WHERE id = ANY(${dueIds}) AND status = 'SCHEDULED'
+      ORDER BY "deliveryDate", "createdAt"
+      LIMIT ${budget}
+      FOR UPDATE SKIP LOCKED
+    )
+    RETURNING id, subject, body, "deliveryDate", "timeZone", "createdAt", attempts,
+      (SELECT email FROM "user" WHERE "user".id = "authorId") AS email`;
+}
+
+/**
+ * Moves a claimed Letter on after its send (SPEC §7 step 7). Only a Letter still SENDING moves,
+ * so an account deleted mid-run is simply gone.
+ */
+export async function recordSend(id: string, update: DeliveryUpdate, now: Date): Promise<void> {
+  const data = update.status === "DELIVERED" ? { ...update, deliveredAt: now } : update;
+  await db.letter.updateMany({ where: { id, status: "SENDING" }, data });
+}
+
+export function decryptSubject(subject: string | null): string | null {
   return subject === null ? null : decrypt(subject);
 }

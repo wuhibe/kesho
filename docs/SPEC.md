@@ -145,13 +145,13 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 
 `GET /api/cron/deliver`. Requests without `Authorization: Bearer $CRON_SECRET` are rejected, and so are requests where the secret is unset.
 
-1. **Establish the run time.** `now` is the current time. Outside production (`VERCEL_ENV !== 'production'`) a `?now=YYYY-MM-DD` override is honoured.
+1. **Establish the run time.** `now` is the current time. Outside production (`VERCEL_ENV !== 'production'`) a `?now=YYYY-MM-DD` override is honoured, taken at 06:00 UTC like the cron.
 2. **Release stale claims.** SENDING rows with `claimedAt < now − 1h` go back to SCHEDULED.
 3. **Purge.** Delete unverified users with `createdAt < now − 7d`; their PENDING Letters cascade.
-4. **Work out the budget.** `min(90, 100 − emails sent today)`. Track sends-today by counting in the DB or keeping a daily counter.
-5. **Claim the due Letters.** A Letter is due when `status = 'SCHEDULED' AND (now AT TIME ZONE "timeZone")::date >= "deliveryDate"`. Claim them atomically:
+4. **Work out the budget.** `min(90, 100 − emails sent today)`. Sends-today counts Letters with `deliveredAt` since midnight UTC.
+5. **Claim the due Letters.** A Letter is due when it is SCHEDULED and `now`, converted to its `timeZone`, has reached its `deliveryDate`. That rule is `isDue` in `lib/delivery-date.ts`, so it has a test: the run loads SCHEDULED Letters dated up to UTC's tomorrow (no timezone is a whole day ahead), keeps the due ones and claims them atomically, where `<due>` is `id = ANY($dueIds) AND status = 'SCHEDULED'`:
    ```sql
-   UPDATE "Letter" SET status='SENDING', "claimedAt"=now()
+   UPDATE "Letter" SET status='SENDING', "claimedAt"=$now
    WHERE id IN (SELECT id FROM "Letter" WHERE <due> ORDER BY "deliveryDate","createdAt" LIMIT $budget FOR UPDATE SKIP LOCKED)
    RETURNING *
    ```

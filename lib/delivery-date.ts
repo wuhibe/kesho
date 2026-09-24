@@ -10,6 +10,14 @@ export function todayIn(timeZone: string, now: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 }
 
+/**
+ * A Letter is due once its Delivery date has come in the Author's timezone, so it can arrive
+ * late on the right day but never a day early (ADR 0001).
+ */
+export function isDue(letter: { deliveryDate: string; timeZone: string }, now: Date): boolean {
+  return todayIn(letter.timeZone, now) >= letter.deliveryDate;
+}
+
 /** The Delivery dates an Author can pick: tomorrow up to five years out (SPEC §5). */
 export function deliveryDateRange(today: string): { min: string; max: string } {
   return { min: addDays(today, 1), max: addMonths(today, MAX_MONTHS_AHEAD) };
@@ -32,6 +40,10 @@ export function addMonths(date: string, months: number): string {
   return toDate(Date.UTC(year, month - 1 + months, Math.min(day, lastDay)));
 }
 
+export function addDays(date: string, days: number): string {
+  return toDate(fromDate(date) + days * DAY_MS);
+}
+
 export function daysBetween(from: string, to: string): number {
   return Math.round((fromDate(to) - fromDate(from)) / DAY_MS);
 }
@@ -50,6 +62,11 @@ export function formatDate(date: string): string {
   });
 }
 
+/** "Sept 2026", as the delivery email signs it (SPEC §8). */
+export function formatMonth(date: string): string {
+  return new Date(fromDate(date)).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
 /** The Postgres `date` column's value: midnight UTC on that day. */
 export function toUtcDate(date: string): Date {
   return new Date(fromDate(date));
@@ -57,10 +74,6 @@ export function toUtcDate(date: string): Date {
 
 export function fromUtcDate(value: Date): string {
   return toDate(value.getTime());
-}
-
-function addDays(date: string, days: number): string {
-  return toDate(fromDate(date) + days * DAY_MS);
 }
 
 function fromDate(date: string): number {
