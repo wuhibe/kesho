@@ -1,0 +1,46 @@
+# Weekly pg_dump of Neon main to Cloudflare R2, keeping the newest 8 (SPEC §10).
+# Restore: pg_restore --no-owner --no-acl --clean --if-exists --dbname=<scratch branch URL> <file>
+name: Backup
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Sundays, clear of the 06:00 UTC delivery run
+  workflow_dispatch:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash # adds pipefail to GitHub's default bash -e
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_ENDPOINT_URL: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+      # R2 rejects the checksum headers newer AWS CLIs send by default.
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+      BUCKET: s3://${{ secrets.R2_BUCKET }}
+    steps:
+      # pg_dump must be at least the server's major version: Neon runs Postgres 18.
+      - name: Install pg_dump 18
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -yqq postgresql-client-18
+
+      - name: Dump main and upload
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          file="kesho-$(date -u +%F).dump"
+          /usr/lib/postgresql/18/bin/pg_dump --format=custom --no-owner --no-acl --dbname="$BACKUP_DATABASE_URL" --file="$file"
+          aws s3 cp "$file" "$BUCKET/$file"
+
+      # ponytail: count-based rather than an R2 lifecycle rule, so failed weeks never age out the last good dumps.
+      - name: Keep the newest 8
+        run: aws s3 ls "$BUCKET/kesho-" | awk '{print $4}' | sort | head -n -8 | xargs -r -I{} aws s3 rm "$BUCKET/{}"

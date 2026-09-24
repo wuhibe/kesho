@@ -7,7 +7,8 @@ import { type SendResult, sendDeliveryEmail } from "@/lib/email";
 import { decrypt } from "@/lib/encryption";
 import {
   type ClaimedLetter,
-  claimDueLetters,
+  claimLetters,
+  type ClaimScope,
   countDeliveredToday,
   decryptSubject,
   recordSend,
@@ -29,12 +30,15 @@ export type RunSummary = {
   undeliverable: number;
 };
 
-/** The daily delivery run, steps 2–7 of SPEC §7. Returns counts only: no ids, emails or content. */
-export async function runDelivery(now: Date): Promise<RunSummary> {
+/**
+ * The daily delivery run, steps 2–7 of SPEC §7. Scope "all" ignores the Delivery date, for the
+ * shutdown promise (SPEC §9). Returns counts only: no ids, emails or content.
+ */
+export async function runDelivery(now: Date, scope: ClaimScope = "due"): Promise<RunSummary> {
   const released = await releaseStaleClaims(now);
   const purged = await purgeUnverifiedAuthors(now);
   const budget = runBudget(await countDeliveredToday(now));
-  const letters = await claimDueLetters(now, budget);
+  const letters = await claimLetters(now, budget, scope);
 
   const summary: RunSummary = { released, purged, budget, claimed: letters.length, delivered: 0, rescheduled: 0, undeliverable: 0 };
   // Once Resend reports the day's or month's quota spent, the rest wait for the next run unsent.
