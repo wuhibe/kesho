@@ -16,6 +16,29 @@ _Avoid_: Note, message, email, capsule
 The calendar day a Letter is emailed to its Author: at least tomorrow, at most five years out.
 _Avoid_: Send date, schedule, delivery time
 
+### Letter lifecycle
+
+**Pending**:
+A Letter whose Author has not yet verified their email. It is never delivered, and it is discarded if the email stays unverified for seven days.
+_Avoid_: Draft, unconfirmed
+
+**Scheduled**:
+A Letter waiting for its Delivery date. It can be cancelled.
+_Avoid_: Queued, active
+
+**Delivered**:
+A Letter that has been emailed to its Author and now lives in their Archive.
+_Avoid_: Sent, opened
+
+**Undeliverable**:
+A Letter whose email could not reach its Author. It stays in the Archive and is retried when the Author verifies a new email.
+_Avoid_: Failed, bounced
+
+**Cancelled**:
+Not a state. Cancelling a Pending or Scheduled Letter deletes it permanently.
+
+### Viewing
+
 **Sealed**:
 The state of a Letter whose body its Author cannot read until the Delivery date.
 _Avoid_: Locked, hidden
