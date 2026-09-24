@@ -8,13 +8,14 @@ import { Lead } from "@/components/lead";
 import { Notice } from "@/components/notice";
 import { SubmitButton } from "@/components/submit-button";
 import { authClient } from "@/lib/auth-client";
-import { EXPIRED, failure, type FormState, IDLE } from "./form-state";
+import { LINK_EXPIRED_RESET } from "@/lib/copy";
+import { failure, type FormState, IDLE } from "@/lib/form-state";
 
 export const NewPasswordForm: FC<{ token: string }> = ({ token }) => {
   const [result, submit, isPending] = useActionState(async (_: FormState, form: FormData): Promise<FormState> => {
     const { error } = await authClient.resetPassword({ newPassword: String(form.get("password")), token });
-    if (error?.code === "INVALID_TOKEN") return { status: "error", message: EXPIRED };
-    return error ? failure(error.status) : { status: "done" };
+    if (error?.code === "INVALID_TOKEN") return { status: "error", message: LINK_EXPIRED_RESET };
+    return error ? failure(error) : { status: "done" };
   }, IDLE);
 
   if (result.status === "done") {

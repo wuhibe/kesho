@@ -49,8 +49,8 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 | `/` | **Header:** "Write to the you of tomorrow." + "Kesho means tomorrow in Swahili. Write it now; we'll seal it and email it to you on the day you choose, up to five years from now." **Letter sheet:** today's date as a mono label, an optional subject (≤150), the italic script salutation "Dear future me,", a ruled serif body (≤20,000 chars) and a word count. **Send bar:** presets 6 months / 1 year / 3 years / 5 years / Pick a date (`<input type=date min=tomorrow max=+5y>`), the resolved line "→ ARRIVES 24 SEPT 2027 · IN 365 DAYS", and a **Send to the future →** button, disabled until the body has text. The bar floats on md+ and sits inline on mobile. The draft autosaves to `localStorage`. |
 | Auth modal (over `/`) | "Where should it arrive?", a "New here / I have an account" toggle, email and password (8+), and "Forgot password?" in login mode. **Sign up:** "Create account & seal letter", followed by the consent line: "We'll email you a link… By continuing you confirm you're 16+ and agree to the Terms." **Log in:** "Log in & seal letter". |
 | `/check-inbox` | An envelope stamped PENDING, "Check your inbox." with the echoed email, Resend (30 s cooldown), "Wrong email?" (reopens the modal) and the 7-day discard note |
-| `/sealed/[id]` | An envelope stamped SEALED, "DO NOT OPEN BEFORE <date>", "See you in N days.", and Write another / My letters |
-| `/letters` (auth) | "Your letters". An Undeliverable banner ("One letter couldn't reach you… Update your email") when relevant. **Sealed · N of 20:** subject or "Untitled letter", `OPENS <date> · N DAYS` or `PENDING · VERIFY YOUR EMAIL`, and Cancel with an inline "Delete forever?" confirm. **Archive:** expandable rows with the body in serif, marked UNDELIVERABLE where relevant, plus Delete. **Account:** Change email / Change password / Delete account (with a confirm). Empty state: "Nothing sealed yet. Future you is waiting." |
+| `/sealed/[id]` | An envelope stamped SEALED, "DO NOT OPEN BEFORE <date>", "See you in N days." ("Opens today." / "On its way." once the date has come), and Write another / My letters |
+| `/letters` (auth) | "Your letters". An Undeliverable banner ("One letter couldn't reach you… Update your email") when relevant. **Sealed · N of 20:** subject or "Untitled letter", `OPENS <date> · N DAYS` (`OPENS TODAY` on the day, `ON ITS WAY` once past it and awaiting the run) or `PENDING · VERIFY YOUR EMAIL`, and Cancel with an inline "Delete forever?" confirm. **Archive:** expandable rows with the body in serif, marked UNDELIVERABLE where relevant, plus Delete with the same "Delete forever?" confirm. **Account:** Change email / Change password (signs out every other session) / Delete account (the password is the confirm). Empty state: "Nothing sealed yet. Future you is waiting." |
 | `/reset-password` | request form + set-new-password form (token from email) |
 | `/terms`, `/privacy` | see §9 |
 | `/.well-known/security.txt` | `Contact: mailto:hello@kesho.et` · `Expires: 2027-09-24T00:00:00.000Z` · `Preferred-Languages: en` · `Canonical: https://kesho.et/.well-known/security.txt` |
@@ -73,6 +73,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 - **Rate limited:** "Too many tries. Wait a minute and try again."
 - **Anything else failed:** "Something went wrong. Try again."
 - **Wrong credentials:** "That email and password don't match." (never reveals whether the account exists)
+- **Wrong password** (signed in, changing password or deleting the account): "That password isn't right."
 - **Email changed:** "Your sealed letters will now arrive at the new address."
 
 ## 4. Data model — [Data model + lifecycle](https://github.com/wuhibe/kesho/issues/6)
@@ -133,7 +134,7 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 - **Options:** `emailAndPassword: { enabled, requireEmailVerification: true, sendResetPassword, revokeSessionsOnPasswordReset: true }` and `emailVerification: { sendVerificationEmail, sendOnSignUp: true, sendOnSignIn: true, autoSignInAfterVerification: true, afterEmailVerification }`. `sendOnSignIn` is what makes "Log in and we'll send a fresh one" true. `user: { changeEmail: { enabled: true }, deleteUser: { enabled: true } }`.
 - **Token lifetimes:** 1 h. Sessions last 7 days.
 - **Sending mail:** don't `await` sends inside auth callbacks. Use `after()` / `waitUntil` so response timing can't be used to probe accounts. Each callback hands its send to `after()` itself: better-auth awaits `/send-verification-email` directly, so `advanced.backgroundTasks` doesn't cover it.
-- **Rate limiting:** `rateLimit: { storage: "database", window: 60, max: 100, customRules }`; the rules allow 3 requests per 60 s on `/sign-up/email`, `/sign-in/email` (it re-sends verification), `/request-password-reset` and `/send-verification-email`, since each one sends an email.
+- **Rate limiting:** `rateLimit: { storage: "database", window: 60, max: 100, customRules }`; the rules allow 3 requests per 60 s on `/sign-up/email`, `/sign-in/email` (it re-sends verification), `/request-password-reset`, `/send-verification-email` and `/change-email` (it mails whatever address is typed in), since each one sends an email.
 - **`BETTER_AUTH_URL`:**
   - prod: `https://kesho.et`
   - preview: from `VERCEL_URL` (ahead of any `BETTER_AUTH_URL`), added to `trustedOrigins` with `VERCEL_BRANCH_URL`

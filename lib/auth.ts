@@ -61,6 +61,8 @@ export const auth = betterAuth({
       "/sign-up/email": { window: 60, max: 3 },
       "/request-password-reset": { window: 60, max: 3 },
       "/send-verification-email": { window: 60, max: 3 },
+      // Mails whatever address is typed in; better-auth's own default here is 3 per 10 s.
+      "/change-email": { window: 60, max: 3 },
     },
   },
   // The composer's Letter rides on sign-up and log-in, so sealing keeps those routes' rate
