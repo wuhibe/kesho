@@ -8,8 +8,9 @@ import { Notice } from "@/components/notice";
 import { ghostPill, inkPill } from "@/components/pill";
 import { auth } from "@/lib/auth";
 import { LINK_EXPIRED_LOG_IN } from "@/lib/copy";
-import { daysBetween, formatDate, todayIn } from "@/lib/delivery-date";
+import { formatDate } from "@/lib/delivery-date";
 import { findSealedLetter } from "@/lib/letters";
+import { arrivalNote, dayCount, daysUntil } from "@/lib/sealed-label";
 import { ClearDraft } from "./clear-draft";
 
 export const metadata: Metadata = { title: "Sealed · Kesho" };
@@ -34,13 +35,20 @@ const SealedPage: FC<PageProps<"/sealed/[id]">> = async ({ params, searchParams 
   const letter = await findSealedLetter(id, session.user.id);
   if (!letter) notFound();
 
-  const days = daysBetween(todayIn(letter.timeZone), letter.deliveryDate);
+  const days = daysUntil(letter);
+  const note = arrivalNote(days);
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center px-6 pb-24 pt-16 text-center">
       <ClearDraft letterId={id} />
       <Envelope stamp="Sealed" note={`Do not open before ${formatDate(letter.deliveryDate)}`} />
       <h1 className="mt-10 text-5xl font-medium tracking-tight">
-        See you in <span className="text-red">{days === 1 ? "1 day" : `${days} days`}.</span>
+        {note ? (
+          <span className="text-red">{note}.</span>
+        ) : (
+          <>
+            See you in <span className="text-red">{dayCount(days)}.</span>
+          </>
+        )}
       </h1>
       <p className="mt-4 max-w-md text-lg text-ink/70">
         You won&apos;t be able to read it until then. You can still cancel it from your letters.

@@ -3,6 +3,9 @@ export const inkPill =
   "rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-ink/85 disabled:bg-sand disabled:text-bark";
 export const ghostPill =
   "rounded-full border border-ink/20 px-5 py-3 text-sm font-medium transition-colors hover:bg-paper disabled:text-bark";
+/** Red is kept for destructive actions (SPEC §3). */
+export const dangerPill =
+  "rounded-full bg-red px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-red/85 disabled:bg-sand disabled:text-bark";
 
 /** A choice among options, such as a Delivery date preset. */
 export function chip(isOn: boolean): string {

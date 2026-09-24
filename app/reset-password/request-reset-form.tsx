@@ -7,7 +7,8 @@ import { Lead } from "@/components/lead";
 import { Notice } from "@/components/notice";
 import { SubmitButton } from "@/components/submit-button";
 import { authClient } from "@/lib/auth-client";
-import { EXPIRED, failure, type FormState, IDLE } from "./form-state";
+import { LINK_EXPIRED_RESET } from "@/lib/copy";
+import { failure, type FormState, IDLE } from "@/lib/form-state";
 
 export const RequestResetForm: FC<{ hasExpiredLink: boolean }> = ({ hasExpiredLink }) => {
   const [result, submit, isPending] = useActionState(async (_: FormState, form: FormData): Promise<FormState> => {
@@ -15,7 +16,7 @@ export const RequestResetForm: FC<{ hasExpiredLink: boolean }> = ({ hasExpiredLi
       email: String(form.get("email")),
       redirectTo: "/reset-password",
     });
-    return error ? failure(error.status) : { status: "done" };
+    return error ? failure(error) : { status: "done" };
   }, IDLE);
 
   // Same message whether or not the account exists (SPEC §3).
@@ -32,7 +33,7 @@ export const RequestResetForm: FC<{ hasExpiredLink: boolean }> = ({ hasExpiredLi
     <form action={submit} className="flex flex-col gap-3">
       <Heading>Forgot your password?</Heading>
       <Lead>Enter your email and we&apos;ll send a link to choose a new one. Your sealed letters are safe either way.</Lead>
-      {hasExpiredLink && <Notice>{EXPIRED}</Notice>}
+      {hasExpiredLink && <Notice>{LINK_EXPIRED_RESET}</Notice>}
       <Field label="Email" name="email" type="email" autoComplete="email" />
       {result.status === "error" && <Notice>{result.message}</Notice>}
       <SubmitButton isPending={isPending}>Send reset link</SubmitButton>

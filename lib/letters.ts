@@ -1,12 +1,32 @@
 import { db } from "@/lib/db";
+import type { LetterStatus } from "@/lib/generated/prisma/client";
 import { fromUtcDate, toUtcDate } from "@/lib/delivery-date";
-import { encrypt } from "@/lib/encryption";
+import { decrypt, encrypt } from "@/lib/encryption";
 import type { LetterInput } from "@/lib/letter-input";
 import { initialStatus, type SealingAuthor, sealOutcome } from "@/lib/seal-rules";
 
 // Every LetterStatus change goes through this module (CLAUDE.md → Types & data).
 
-const SEALED_STATUSES: ("PENDING" | "SCHEDULED")[] = ["PENDING", "SCHEDULED"];
+const SEALED_STATUSES = ["PENDING", "SCHEDULED"] satisfies LetterStatus[];
+const ARCHIVED_STATUSES = ["DELIVERED", "UNDELIVERABLE"] satisfies LetterStatus[];
+
+export type SealedLetter = {
+  id: string;
+  subject: string | null;
+  status: (typeof SEALED_STATUSES)[number];
+  deliveryDate: string;
+  timeZone: string;
+};
+
+export type ArchivedLetter = {
+  id: string;
+  subject: string | null;
+  body: string;
+  status: (typeof ARCHIVED_STATUSES)[number];
+  createdAt: Date;
+  deliveredAt: Date | null;
+  timeZone: string;
+};
 
 /**
  * Seals a Letter for its Author, PENDING or SCHEDULED (SPEC §5 Create). Re-sealing the same
@@ -56,4 +76,58 @@ export async function findSealedLetter(
     select: { deliveryDate: true, timeZone: true },
   });
   return letter && { deliveryDate: fromUtcDate(letter.deliveryDate), timeZone: letter.timeZone };
+}
+
+/**
+ * An Author's letters for /letters: the Sealed list, soonest first, and the Archive, newest
+ * first. Sealed bodies are never read, let alone decrypted (SPEC §5 Sealed).
+ */
+export async function listLetters(authorId: string): Promise<{ sealed: SealedLetter[]; archive: ArchivedLetter[] }> {
+  const [sealed, archive] = await Promise.all([
+    db.letter.findMany({
+      where: { authorId, status: { in: SEALED_STATUSES } },
+      select: { id: true, subject: true, status: true, deliveryDate: true, timeZone: true },
+      orderBy: [{ deliveryDate: "asc" }, { createdAt: "asc" }],
+    }),
+    db.letter.findMany({
+      where: { authorId, status: { in: ARCHIVED_STATUSES } },
+      select: {
+        id: true,
+        subject: true,
+        body: true,
+        status: true,
+        createdAt: true,
+        deliveredAt: true,
+        timeZone: true,
+      },
+      orderBy: [{ deliveryDate: "desc" }, { createdAt: "desc" }],
+    }),
+  ]);
+  return {
+    sealed: sealed.map((letter) => ({
+      ...letter,
+      status: letter.status as SealedLetter["status"],
+      subject: decryptSubject(letter.subject),
+      deliveryDate: fromUtcDate(letter.deliveryDate),
+    })),
+    archive: archive.map((letter) => ({
+      ...letter,
+      status: letter.status as ArchivedLetter["status"],
+      subject: decryptSubject(letter.subject),
+      body: decrypt(letter.body),
+    })),
+  };
+}
+
+/**
+ * Cancelling a Sealed Letter and deleting one from the Archive are both a hard delete
+ * (SPEC §5). A Letter the daily run has claimed (SENDING) is left alone.
+ */
+export async function deleteLetter(id: string, authorId: string): Promise<boolean> {
+  const { count } = await db.letter.deleteMany({ where: { id, authorId, status: { not: "SENDING" } } });
+  return count > 0;
+}
+
+function decryptSubject(subject: string | null): string | null {
+  return subject === null ? null : decrypt(subject);
 }
