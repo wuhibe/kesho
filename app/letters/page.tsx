@@ -30,6 +30,8 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
   if (!session) redirect("/?auth=login");
   const { sealed, archive } = await listLetters(session.user.id);
   const emailNotice = email === "changed" && (error === undefined ? EMAIL_CHANGED : SOMETHING_WENT_WRONG);
+  // Verifying a new email requeues Undeliverable Letters, so the banner points at Change email, opened.
+  const hasUndeliverable = archive.some((letter) => letter.status === "UNDELIVERABLE");
 
   return (
     <main className="mx-auto max-w-3xl px-6 pb-24 pt-16">
@@ -43,6 +45,15 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
         <div className="mt-8">
           <Notice>{emailNotice}</Notice>
         </div>
+      )}
+      {hasUndeliverable && (
+        <p className="mt-8 rounded-xl bg-paper p-4 text-sm shadow-float">
+          <b>One letter couldn&apos;t reach you.</b> Your email bounced.{" "}
+          <a href="#change-email" className="text-red underline">
+            Update your email
+          </a>{" "}
+          and we&apos;ll send it again.
+        </p>
       )}
 
       <h2 className={sectionLabel}>
@@ -72,7 +83,7 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
       <h2 className={sectionLabel}>Account</h2>
       <p className="mt-2 text-sm text-bark">Letters arrive at {session.user.email}.</p>
       <div className="mt-4 flex flex-col gap-4">
-        <details>
+        <details id="change-email" open={hasUndeliverable}>
           <summary className={accountSummary}>Change email</summary>
           <div className="mt-4">
             <ChangeEmailForm currentEmail={session.user.email} />

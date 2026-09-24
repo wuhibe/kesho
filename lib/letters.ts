@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import type { LetterStatus } from "@/lib/generated/prisma/client";
 import { addDays, fromUtcDate, isDue, todayIn, toUtcDate } from "@/lib/delivery-date";
-import type { DeliveryUpdate } from "@/lib/delivery-rules";
+import { afterBounce, type Bounce, type DeliveryUpdate } from "@/lib/delivery-rules";
 import { decrypt, encrypt } from "@/lib/encryption";
 import type { LetterInput } from "@/lib/letter-input";
 import { initialStatus, type SealingAuthor, sealOutcome } from "@/lib/seal-rules";
@@ -63,9 +63,21 @@ export async function sealLetter(
   return "sealed";
 }
 
-/** PENDING → SCHEDULED for every Letter of an Author who just verified their email (SPEC §5 Verify). */
+/**
+ * Runs whenever an Author verifies an email: their first, or a new one (SPEC §5 Verify, Email
+ * change). PENDING Letters are Scheduled, and UNDELIVERABLE ones get a fresh set of attempts at
+ * the new address.
+ */
 export async function scheduleVerifiedLetters(authorId: string): Promise<void> {
-  await db.letter.updateMany({ where: { authorId, status: "PENDING" }, data: { status: "SCHEDULED" } });
+  await db.$transaction([
+    db.letter.updateMany({ where: { authorId, status: "PENDING" }, data: { status: "SCHEDULED" } }),
+    // ponytail: attempts = 0 reuses the key delivery/<id>/0; if that first send was under 24 h ago,
+    // Resend refuses the changed payload, costing one attempt and a day. A requeue counter in the key if that bites.
+    db.letter.updateMany({
+      where: { authorId, status: "UNDELIVERABLE" },
+      data: { status: "SCHEDULED", attempts: 0, lastError: null },
+    }),
+  ]);
 }
 
 /** The sealed view of a Letter: its date, never its body (SPEC §5 Sealed). */
@@ -197,6 +209,43 @@ export async function recordSend(id: string, update: DeliveryUpdate, now: Date):
   const data = update.status === "DELIVERED" ? { ...update, deliveredAt: now } : update;
   await db.letter.updateMany({ where: { id, status: "SENDING" }, data });
 }
+
+/**
+ * Applies a Resend webhook's Bounce to the Delivered Letter its email carried, once per svix-id
+ * (SPEC §7 Bounce webhook). The dedupe row commits with the change, so a failure leaves the event
+ * for svix to retry. Anything but a Delivered Letter is left alone: a late event can't undo a
+ * requeue, and of two events for one email racing, the first to commit wins.
+ *
+ * Returns "retry" while a run holds SENDING Letters and none matched: the event may belong to a
+ * Letter whose send hasn't been recorded yet, so svix should deliver it again later.
+ */
+export async function recordBounce(eventId: string, bounce: Bounce): Promise<"done" | "retry"> {
+  return db.$transaction(async (tx): Promise<"done" | "retry"> => {
+    const { count } = await tx.webhookEvent.createMany({ data: { id: eventId }, skipDuplicates: true });
+    if (count === 0) return "done";
+    // ponytail: resendEmailId has no index; fine while bounces are rare, add one if the table grows.
+    const letter = await tx.letter.findFirst({
+      where: { resendEmailId: bounce.emailId, status: "DELIVERED" },
+      select: { id: true, attempts: true },
+    });
+    if (!letter) {
+      const isRunSending = (await tx.letter.count({ where: { status: "SENDING" } })) > 0;
+      // Throwing rolls back the dedupe row, so the retried event is handled afresh.
+      if (isRunSending) throw new RetryLater();
+      return "done";
+    }
+    const update = afterBounce(bounce, letter.attempts);
+    // Re-checked under the row lock, so a concurrent event or delete makes this a no-op.
+    await tx.letter.updateMany({ where: { id: letter.id, status: "DELIVERED" }, data: update });
+    console.info(`letter ${letter.id}: ${update.status} after ${bounce.error}`);
+    return "done";
+  }).catch((error: unknown): "retry" => {
+    if (error instanceof RetryLater) return "retry";
+    throw error;
+  });
+}
+
+class RetryLater extends Error {}
 
 export function decryptSubject(subject: string | null): string | null {
   return subject === null ? null : decrypt(subject);
