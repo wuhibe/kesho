@@ -1,0 +1,4 @@
+Contact: mailto:hello@kesho.et
+Expires: 2027-09-24T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://kesho.et/.well-known/security.txt

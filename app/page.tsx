@@ -12,7 +12,7 @@ const Home: FC<PageProps<"/">> = async ({ searchParams }) => {
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-16 pt-16 md:pb-48 md:pt-24">
+    <main className="mx-auto max-w-3xl px-6 pb-16 pt-16 md:pt-24">
       <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Write to the you of tomorrow.</h1>
       <p className="mt-4 text-lg text-bark">
         Kesho means tomorrow in Swahili. Write it now; we&apos;ll seal it and email it to you on the day you

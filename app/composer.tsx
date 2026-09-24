@@ -57,7 +57,10 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
         </p>
       </section>
 
-      <div className="mt-6 flex flex-col gap-4 rounded-2xl bg-cream/95 p-4 shadow-float md:fixed md:inset-x-6 md:bottom-6 md:z-10 md:mx-auto md:max-w-3xl md:flex-row md:items-center md:justify-between md:px-6">
+      {/* data-send-bar: the root layout pads the page for this bar while it floats (md+). */}
+      <div
+        data-send-bar
+        className="mt-6 flex flex-col gap-4 rounded-2xl bg-cream/95 p-4 shadow-float md:fixed md:inset-x-6 md:bottom-6 md:z-10 md:mx-auto md:max-w-3xl md:flex-row md:items-center md:justify-between md:px-6">
         <DeliveryPicker draft={draft} today={today} deliveryDate={deliveryDate} />
         <div className="flex flex-col gap-2 md:items-end">
           <button type="button" disabled={!letter || isSealing} onClick={sealOrAskAuth} className={`shrink-0 ${inkPill}`}>
