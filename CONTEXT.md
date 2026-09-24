@@ -12,6 +12,10 @@ _Avoid_: User, sender, recipient, customer
 A private message an Author writes to their future self: an optional subject and a plain-text body.
 _Avoid_: Note, message, email, capsule
 
+**Draft**:
+The unsent subject and body in the composer, kept in the Author's browser. It becomes a Letter only when sent, and is cleared once that Letter is Sealed.
+_Avoid_: using it for a Pending Letter
+
 **Delivery date**:
 The calendar day a Letter is emailed to its Author: at least tomorrow, at most five years out.
 _Avoid_: Send date, schedule, delivery time

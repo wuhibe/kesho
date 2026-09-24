@@ -83,7 +83,7 @@ better-auth owns `user`, `session`, `account`, `verification` and `rateLimit`, g
 enum LetterStatus { PENDING SCHEDULED SENDING DELIVERED UNDELIVERABLE }
 
 model Letter {
-  id            String       @id @default(cuid())
+  id            String       @id @default(cuid())  // the composer supplies a UUID (§5 Create)
   authorId      String
   author        User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
   subject       String?      // "v1:" + base64(iv|tag|ciphertext); plaintext ≤150
@@ -119,6 +119,9 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 - **Create:**
   - Validate: the body is non-empty, the Delivery date is in `[tomorrow, +5y]` in the Author's tz, and the Author has fewer than 20 PENDING+SCHEDULED Letters.
   - The Letter is created SCHEDULED if the Author is verified, otherwise PENDING.
+  - **Signed out:** the Letter rides in the body of `/sign-up/email` or `/sign-in/email`, so it keeps those routes' rate limits (direct `auth.api` calls skip them). A `hooks.before` refuses an invalid Letter before any account exists; a `hooks.after` seals it. Sign-up seals in `after()` and only for a real new user, since a taken email gets a look-alike response. A log-in refused with `EMAIL_NOT_VERIFIED` has matched the password, so it seals PENDING. Its `callbackURL` is `/sealed/<id>`, where verification links land.
+  - **Signed in:** a server action seals it directly, with no auth modal.
+  - The composer's Draft id (a browser `crypto.randomUUID()`) becomes the Letter id, so re-sending a Draft (say, after an expired link) never makes a second Letter. Sending it with a different email ("Wrong email?") gives it a new id, and an id already held by another Author is refused.
 - **Verify:** better-auth's `emailVerification.afterEmailVerification` flips every PENDING Letter of that user to SCHEDULED.
 - **Sealed:** the body of a PENDING/SCHEDULED Letter is **never decrypted or sent to the client**. The dashboard decrypts only the subject.
 - **Recipient:** `user.email`, read at send time.
