@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* Palette and fonts: SPEC §3 Look. */
+@theme {
+  --color-cream: #f0ebe2;
+  --color-paper: #faf7f1;
+  --color-ink: #210c02;
+  --color-red: #c42121;
+  --color-sand: #e1d8c4;
+  --color-bark: #7b6556;
+  --color-muted: #5a6a92;
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-fragment-mono), ui-monospace, monospace;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-script: var(--font-zeyada), cursive;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+.font-script {
+  font-synthesis: none;
+}
+
+/* Focus stays neutral ink, never red (SPEC §3). */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-ink) 35%, transparent);
+  outline-offset: 2px;
+}
+:is(input, textarea, select):focus-visible {
+  outline: none;
+  border-color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
