@@ -1,0 +1,4 @@
+# Checks run only once their scripts exist (Build 1 adds lint / typecheck / test).
+pnpm run --if-present lint
+pnpm run --if-present typecheck
+pnpm run --if-present test
