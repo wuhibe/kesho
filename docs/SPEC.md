@@ -72,6 +72,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 - **Expired or used link:** "This link has expired. Log in and we'll send a fresh one." On `/reset-password`, where logging in isn't an option: "This link has expired. Enter your email and we'll send a fresh one."
 - **Rate limited:** "Too many tries. Wait a minute and try again."
 - **Anything else failed:** "Something went wrong. Try again."
+- **Not found** (unmatched URLs, or a cancelled Letter's `/sealed/[id]`): "Nothing here." + "This page doesn't exist, or the letter was cancelled." → Write a letter
 - **Wrong credentials:** "That email and password don't match." (never reveals whether the account exists)
 - **Wrong password** (signed in, changing password or deleting the account): "That password isn't right."
 - **Email changed:** "Your sealed letters will now arrive at the new address."
