@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { errorCopy, LETTER_CAP_REACHED, RATE_LIMITED, SOMETHING_WENT_WRONG, WRONG_CREDENTIALS } from "./copy.ts";
+
+test("each failed request maps to its SPEC §3 copy", () => {
+  assert.equal(errorCopy({ status: 403, code: "LETTER_CAP" }), LETTER_CAP_REACHED);
+  assert.equal(errorCopy({ status: 401 }), WRONG_CREDENTIALS);
+  assert.equal(errorCopy({ status: 429 }), RATE_LIMITED);
+  assert.equal(errorCopy({ status: 500 }), SOMETHING_WENT_WRONG);
+});

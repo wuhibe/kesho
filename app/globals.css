@@ -13,6 +13,7 @@
   --font-mono: var(--font-fragment-mono), ui-monospace, monospace;
   --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-script: var(--font-zeyada), cursive;
+  --shadow-float: 0 0 0 1px rgb(33 12 2 / 0.06), 0 8px 20px -6px rgb(33 12 2 / 0.25);
 }
 
 body {
