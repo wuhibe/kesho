@@ -1,16 +1,9 @@
 import type { FC } from "react";
-import { Body, Button, Container, Head, Heading, Html, Link, Preview, Section, Text } from "react-email";
+import { Body, Button, Container, Head, Heading, Html, Preview, Section, Text } from "react-email";
+import { Footer } from "./footer";
+import { BARK, INK, MONO, PAPER, RED, SAND, SANS } from "./theme";
 
 // Look C, the envelope (SPEC §8; prototype/email-templates, variant W).
-
-// Email clients strip web fonts, so these are fallback stacks only (SPEC §8).
-const SANS = "-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const MONO = "'Courier New', Courier, monospace";
-const INK = "#210c02";
-const PAPER = "#faf7f1";
-const SAND = "#e1d8c4";
-const BARK = "#7b6556";
-const RED = "#c42121";
 
 type EnvelopeProps = {
   preheader: string;
@@ -75,16 +68,7 @@ export const Envelope: FC<EnvelopeProps> = ({ preheader, stamp, title, message, 
             <Text style={{ font: `13px/1.6 ${SANS}`, color: BARK, margin: "24px 0 0" }}>{finePrint}</Text>
           </Section>
         </Container>
-        <Container style={{ maxWidth: 560 }}>
-          <Text style={{ font: `12px/1.6 ${SANS}`, color: SAND, margin: "32px 0 0" }}>
-            Kesho · letters to your future self ·{" "}
-            <Link href="https://kesho.et" style={{ color: SAND }}>
-              kesho.et
-            </Link>
-            <br />
-            You&apos;re getting this because of your Kesho account. Replies reach a human at hello@kesho.et.
-          </Text>
-        </Container>
+        <Footer color={SAND} />
       </Body>
     </Html>
   );

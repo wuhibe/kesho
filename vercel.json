@@ -1,4 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "([ \"$VERCEL_ENV\" != production ] || (pnpm check:key && prisma migrate deploy)) && next build"
+  "buildCommand": "([ \"$VERCEL_ENV\" != production ] || (pnpm check:key && prisma migrate deploy)) && next build",
+  "crons": [{ "path": "/api/cron/deliver", "schedule": "0 6 * * *" }]
 }
