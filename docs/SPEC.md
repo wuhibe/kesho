@@ -69,7 +69,9 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 
 **Copy strings:**
 - **20-letter cap:** "You have 20 sealed letters, the most we hold at once. Let one arrive or cancel one to write another."
-- **Expired or used link:** "This link has expired. Log in and we'll send a fresh one."
+- **Expired or used link:** "This link has expired. Log in and we'll send a fresh one." On `/reset-password`, where logging in isn't an option: "This link has expired. Enter your email and we'll send a fresh one."
+- **Rate limited:** "Too many tries. Wait a minute and try again."
+- **Anything else failed:** "Something went wrong. Try again."
 - **Wrong credentials:** "That email and password don't match." (never reveals whether the account exists)
 - **Email changed:** "Your sealed letters will now arrive at the new address."
 
@@ -125,15 +127,15 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 
 ## 6. Auth — [Stack](https://github.com/wuhibe/kesho/issues/2)
 
-- **Options:** `emailAndPassword: { enabled, requireEmailVerification: true, sendResetPassword, revokeSessionsOnPasswordReset: true }` and `emailVerification: { sendVerificationEmail, sendOnSignUp: true, autoSignInAfterVerification: true, afterEmailVerification }`.
+- **Options:** `emailAndPassword: { enabled, requireEmailVerification: true, sendResetPassword, revokeSessionsOnPasswordReset: true }` and `emailVerification: { sendVerificationEmail, sendOnSignUp: true, sendOnSignIn: true, autoSignInAfterVerification: true, afterEmailVerification }`. `sendOnSignIn` is what makes "Log in and we'll send a fresh one" true. `user: { changeEmail: { enabled: true }, deleteUser: { enabled: true } }`.
 - **Token lifetimes:** 1 h. Sessions last 7 days.
-- **Sending mail:** don't `await` sends inside auth callbacks. Use `after()` / `waitUntil` so response timing can't be used to probe accounts.
-- **Rate limiting:** `rateLimit: { storage: "database", window: 60, max: 100, customRules }` for `/sign-up/email`, `/request-password-reset` and `/send-verification-email`.
+- **Sending mail:** don't `await` sends inside auth callbacks. Use `after()` / `waitUntil` so response timing can't be used to probe accounts. Each callback hands its send to `after()` itself: better-auth awaits `/send-verification-email` directly, so `advanced.backgroundTasks` doesn't cover it.
+- **Rate limiting:** `rateLimit: { storage: "database", window: 60, max: 100, customRules }`; the rules allow 3 requests per 60 s on `/sign-up/email`, `/sign-in/email` (it re-sends verification), `/request-password-reset` and `/send-verification-email`, since each one sends an email.
 - **`BETTER_AUTH_URL`:**
   - prod: `https://kesho.et`
-  - preview: from `VERCEL_URL`, added to `trustedOrigins`
+  - preview: from `VERCEL_URL` (ahead of any `BETTER_AUTH_URL`), added to `trustedOrigins` with `VERCEL_BRANCH_URL`
   - local: `http://localhost:3000`
-- **Middleware:** auth middleware **excludes `/api/cron/*` and `/api/webhooks/*`**. A redirect there silently breaks cron.
+- **Middleware** (`proxy.ts` since Next.js 16): auth middleware **excludes `/api/cron/*` and `/api/webhooks/*`**. A redirect there silently breaks cron. Its matcher lists the signed-in routes (`/letters`) rather than excluding public ones.
 
 ## 7. Delivery run — [Email + cron](https://github.com/wuhibe/kesho/issues/3), [ADR 0001](adr/0001-daily-run-local-date-delivery.md)
 
@@ -172,7 +174,7 @@ Built with React Email, passed to Resend via `react:`, with the plain-text part 
 | Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · OPENED <date>` label, the subject, the italic serif "Dear future me," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
 | Verify | `Kesho <hello@mail.kesho.et>` | "Confirm your email to seal your letter" | **C, envelope:** ink page, sand flap, red stamp "AWAITING YOUR SEAL", "One click to seal it.", a red button **Confirm & seal my letter**, and fine print (1 h expiry, 7-day draft deletion) |
 | Reset | same | "Reset your Kesho password" | C, with the stamp "ACCOUNT", the line "Your sealed letters are safe either way." and the button **Choose a new password** |
-| Change email | same | "Confirm your new email" | C (the verify template), with "Your sealed letters will arrive here." |
+| Change email | same | "Confirm your new email" | C (the verify template), with the stamp "ACCOUNT" and the line "Your sealed letters will arrive here." |
 
 - **Every email:**
   - Reply-To `hello@kesho.et`.

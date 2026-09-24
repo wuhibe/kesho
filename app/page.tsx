@@ -1,5 +1,7 @@
+import type { FC } from "react";
+
 // App shell only; the composer arrives in Build 3 (SPEC §3, §11).
-export default function Home() {
+const Home: FC = () => {
   return (
     <main className="mx-auto max-w-2xl px-6 py-24">
       <h1 className="text-4xl font-semibold tracking-tight">Write to the you of tomorrow.</h1>
@@ -9,4 +11,6 @@ export default function Home() {
       </p>
     </main>
   );
-}
+};
+
+export default Home;
