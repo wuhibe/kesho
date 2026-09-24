@@ -160,6 +160,11 @@ export async function countDeliveredToday(now: Date): Promise<number> {
   return db.letter.count({ where: { deliveredAt: { gte: toUtcDate(todayIn("UTC", now)) } } });
 }
 
+/** Letters still waiting for a delivery run. */
+export async function countScheduledLetters(): Promise<number> {
+  return db.letter.count({ where: { status: "SCHEDULED" } });
+}
+
 /** A Letter the run holds as SENDING, still encrypted, with its Author's email read at send time (SPEC §5). */
 export type ClaimedLetter = {
   id: string;
@@ -172,27 +177,24 @@ export type ClaimedLetter = {
   email: string;
 };
 
+/** Which Scheduled Letters a run claims: the due ones, or every one for the shutdown promise (SPEC §9). */
+export type ClaimScope = "due" | "all";
+
 /**
- * Claims up to `budget` due Letters, soonest first, as SENDING (SPEC §7 step 5). SKIP LOCKED
- * and the status re-check let a doubled run pass over whatever this one holds.
+ * Claims up to `budget` Letters as SENDING, soonest first (SPEC §7 step 5): the due ones, or for
+ * the shutdown promise every Scheduled one (SPEC §9). SKIP LOCKED and the status re-check let a
+ * doubled run pass over whatever this one holds.
  */
-export async function claimDueLetters(now: Date, budget: number): Promise<ClaimedLetter[]> {
+export async function claimLetters(now: Date, budget: number, scope: ClaimScope): Promise<ClaimedLetter[]> {
   if (budget === 0) return [];
-  // No timezone is a whole day ahead of UTC, so nothing dated after UTC's tomorrow can be due.
-  const candidates = await db.letter.findMany({
-    where: { status: "SCHEDULED", deliveryDate: { lte: toUtcDate(addDays(todayIn("UTC", now), 1)) } },
-    select: { id: true, deliveryDate: true, timeZone: true },
-  });
-  const dueIds = candidates
-    .filter((letter) => isDue({ deliveryDate: fromUtcDate(letter.deliveryDate), timeZone: letter.timeZone }, now))
-    .map((letter) => letter.id);
-  if (dueIds.length === 0) return [];
+  const ids = scope === "all" ? await scheduledIds() : await dueIds(now);
+  if (ids.length === 0) return [];
 
   return db.$queryRaw<ClaimedLetter[]>`
     UPDATE "Letter" SET status = 'SENDING', "claimedAt" = ${now}
     WHERE id IN (
       SELECT id FROM "Letter"
-      WHERE id = ANY(${dueIds}) AND status = 'SCHEDULED'
+      WHERE id = ANY(${ids}) AND status = 'SCHEDULED'
       ORDER BY "deliveryDate", "createdAt"
       LIMIT ${budget}
       FOR UPDATE SKIP LOCKED
@@ -249,4 +251,20 @@ class RetryLater extends Error {}
 
 export function decryptSubject(subject: string | null): string | null {
   return subject === null ? null : decrypt(subject);
+}
+
+async function dueIds(now: Date): Promise<string[]> {
+  // No timezone is a whole day ahead of UTC, so nothing dated after UTC's tomorrow can be due.
+  const candidates = await db.letter.findMany({
+    where: { status: "SCHEDULED", deliveryDate: { lte: toUtcDate(addDays(todayIn("UTC", now), 1)) } },
+    select: { id: true, deliveryDate: true, timeZone: true },
+  });
+  return candidates
+    .filter((letter) => isDue({ deliveryDate: fromUtcDate(letter.deliveryDate), timeZone: letter.timeZone }, now))
+    .map((letter) => letter.id);
+}
+
+async function scheduledIds(): Promise<string[]> {
+  const letters = await db.letter.findMany({ where: { status: "SCHEDULED" }, select: { id: true } });
+  return letters.map((letter) => letter.id);
 }

@@ -199,7 +199,7 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
   - Acceptable use: no illegal content, no automated sign-ups.
   - Content stays the user's.
   - Material changes are announced by email.
-  - **Shutdown promise:** at least 30 days' notice, and every Sealed Letter is emailed early rather than lost. The build needs a `scripts/deliver-all-now` that runs the delivery path with the due filter ignored.
+  - **Shutdown promise:** at least 30 days' notice, and every Sealed Letter is emailed early rather than lost. `scripts/deliver-all-now.ts` runs the delivery path with the due filter ignored; each run sends up to the day's budget, so run it daily until none are left. With production's env (`vercel env pull --environment=production` plus `VERCEL_ENV=production`): `pnpm tsx --env-file=<file> scripts/deliver-all-now.ts` counts, `--yes` sends. `--yes` refuses to start while `DATABASE_URL`, `LETTER_ENCRYPTION_KEY` or `RESEND_API_KEY` is empty, since a failed send costs every claimed Letter an attempt. At 90 a day, 30 days' notice covers about 2,700 Letters, under Resend's 3,000 a month.
 - **Privacy:**
   - lists what's stored
   - says honestly that this isn't end-to-end encryption (Kesho holds the key and never reads letters unless compelled by law)
@@ -226,17 +226,17 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
 - **DNS:** lives in Cloudflare. The Vercel A/CNAME records are **DNS only**.
 - **Email setup:** Resend sends from `mail.kesho.et` (already verified). Cloudflare Email Routing forwards `hello@kesho.et` to the owner (live).
 - **Backups:**
-  - A weekly Sunday GitHub Action runs `pg_dump` of `main` and uploads it to R2, keeping the last 8.
-  - Secrets: `BACKUP_DATABASE_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
-  - Do one restore drill into a scratch Neon branch before launch.
+  - A weekly Sunday GitHub Action (`.github/workflows/backup.yml`) runs `pg_dump` 18 of `main` and uploads `kesho-<YYYY-MM-DD>.dump` to R2, keeping the last 8.
+  - Secrets: `BACKUP_DATABASE_URL` (main's unpooled URL), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
+  - Do one restore drill into a scratch Neon branch before launch: `pg_restore --no-owner --no-acl --clean --if-exists --dbname=<scratch branch URL> <dump>`, then compare row counts with `main`.
 
 **Launch checklist:**
 - [ ] Vercel project + Neon integration (per-preview branching off, compute capped at 0.25 CU)
-- [ ] Vercel A/CNAME in Cloudflare (DNS only) + `www` → apex redirect
+- [x] Vercel A/CNAME in Cloudflare (DNS only) + `www` → apex redirect
 - [ ] Prod env vars, including the existing encryption key from the password manager
 - [ ] Resend webhook (prod) + `RESEND_WEBHOOK_SECRET`
 - [ ] R2 bucket + token + backup Action + one restore drill
-- [ ] `security.txt`, Vercel Web Analytics on
+- [x] `security.txt`, Vercel Web Analytics on
 - [ ] **Tighten DMARC to `p=quarantine` ~2026-10-15 to 2026-10-22** (the reminder is in the owner's calendar)
 - [x] Nameservers → Cloudflare, Cloudflare MFA, Email Routing, DMARC `p=none`, Resend domain verified, restricted Resend keys, prod encryption key backed up
 
