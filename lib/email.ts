@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { Resend } from "resend";
+import { Resend, type WebhookEventPayload } from "resend";
 import { routeEmail } from "@/lib/email-redirect";
 
 export type Email = { subject: string; react: ReactElement };
@@ -40,6 +40,30 @@ export async function sendDeliveryEmail(
   // Error names only: Resend messages can echo the recipient address.
   if (error) return { ok: false, isQuota: error.statusCode === 429, error: error.name };
   return { ok: true, emailId: data.id };
+}
+
+/** A Resend webhook's event and svix-id if its signature checks out against `secret`, else null. */
+export function verifyWebhookEvent(
+  payload: string,
+  headers: Headers,
+  secret: string,
+): { id: string; event: WebhookEventPayload } | null {
+  const { webhooks } = resend();
+  const id = headers.get("svix-id") ?? "";
+  try {
+    const event = webhooks.verify({
+      payload,
+      headers: {
+        id,
+        timestamp: headers.get("svix-timestamp") ?? "",
+        signature: headers.get("svix-signature") ?? "",
+      },
+      webhookSecret: secret,
+    });
+    return { id, event };
+  } catch {
+    return null;
+  }
 }
 
 // Built per send so a missing key fails the send, not the build.

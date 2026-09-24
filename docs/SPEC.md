@@ -168,6 +168,8 @@ Overflow waits for the next day's run. A missed or doubled cron run is harmless:
 - Dedupe on `svix-id` via `WebhookEvent`, then map `resendEmailId` → Letter.
 - `email.bounced` (Permanent), `email.suppressed` or `email.complained` → UNDELIVERABLE at once.
 - Transient/Undetermined bounces and `email.failed` → `attempts+1`, back to SCHEDULED, and UNDELIVERABLE at 3.
+- Only a DELIVERED Letter moves, so a late event can't undo a requeue. An event that matches no Letter while a run holds SENDING Letters gets a 503, and svix retries it, since its Letter's send may not be recorded yet.
+- **Known limit:** a requeue resets `attempts` to 0, so it reuses `delivery/<id>/0`. If that first send was under 24 h ago, Resend refuses the new payload. This costs one attempt and a day.
 
 ## 8. Email — [Sender identity](https://github.com/wuhibe/kesho/issues/9), [Templates](https://github.com/wuhibe/kesho/issues/10)
 
