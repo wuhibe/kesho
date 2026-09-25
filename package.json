@@ -12,6 +12,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --test \"lib/**/*.test.ts\"",
+    "test:db": "node --import tsx --test \"lib/**/*.db-test.ts\"",
     "check:key": "node --input-type=module -e \"import { decrypt, encrypt } from './lib/encryption.ts'; if (decrypt(encrypt('ok')) !== 'ok') process.exit(1)\""
   },
   "devDependencies": {
