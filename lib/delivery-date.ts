@@ -48,6 +48,11 @@ export function daysBetween(from: string, to: string): number {
   return Math.round((fromDate(to) - fromDate(from)) / DAY_MS);
 }
 
+/** "1 day" or "365 days". */
+export function dayCount(days: number): string {
+  return days === 1 ? "1 day" : `${days} days`;
+}
+
 export function isCalendarDate(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && toDate(fromDate(value)) === value;
 }

@@ -1,4 +1,4 @@
-import { daysBetween, formatDate, todayIn } from "./delivery-date.ts";
+import { dayCount, daysBetween, formatDate, todayIn } from "./delivery-date.ts";
 import type { SealedLetter } from "./letters.ts";
 
 /** "Opens 24 Sept 2027 · 365 days", counted from the Author's local today (SPEC §3 /letters). */
@@ -21,8 +21,4 @@ export function arrivalNote(days: number): string | null {
   if (days < 0) return "On its way";
   if (days === 0) return "Opens today";
   return null;
-}
-
-export function dayCount(days: number): string {
-  return days === 1 ? "1 day" : `${days} days`;
 }

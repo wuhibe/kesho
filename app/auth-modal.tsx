@@ -67,8 +67,8 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
       onClick={(event) => event.target === event.currentTarget && dialog.current?.close()}
       className="m-auto w-[calc(100%-3rem)] max-w-md rounded-4xl bg-paper text-ink shadow-float backdrop:bg-ink/60"
     >
-      <div className="p-8">
-        <h2 id="auth-title" className="text-3xl font-medium tracking-tight">
+      <div className="relative p-8">
+        <h2 id="auth-title" className="pr-8 text-3xl font-medium tracking-tight">
           Where should it arrive?
         </h2>
         {letter && (
@@ -114,6 +114,15 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
             </p>
           )}
         </form>
+        {/* Last in the markup so showModal focuses the form, not Close. */}
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={() => dialog.current?.close()}
+          className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full text-2xl leading-none text-ink/60 transition-colors hover:bg-sand/60 hover:text-ink"
+        >
+          ×
+        </button>
       </div>
     </dialog>
   );
