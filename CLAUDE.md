@@ -59,7 +59,7 @@ Tests use `node --test` with native type stripping, so a test imports its module
 
 **Errors & security**
 - Handle errors where you can act on them; let the rest surface to the route's error boundary with a useful message.
-- User-facing errors use the copy strings from SPEC §3 and never reveal whether an account exists.
+- User-facing errors use the copy strings from SPEC §3 and never reveal whether an account exists, except sign-up with a taken email (ADR 0003).
 - Secrets come from env vars only; logs carry ids and statuses, never letter content, emails or tokens.
 - Bodies of Sealed Letters stay encrypted until delivery; decrypt only in the delivery path and the Archive.
 

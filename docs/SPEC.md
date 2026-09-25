@@ -73,7 +73,8 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 - **Rate limited:** "Too many tries. Wait a minute and try again."
 - **Anything else failed:** "Something went wrong. Try again."
 - **Not found** (unmatched URLs, or a cancelled Letter's `/sealed/[id]`): "Nothing here." + "This page doesn't exist, or the letter was cancelled." → Write a letter
-- **Wrong credentials:** "That email and password don't match." (never reveals whether the account exists)
+- **Wrong credentials:** "That email and password don't match." (log-in never reveals whether the account exists)
+- **Sign-up with a taken email:** "You already have an account. Log in or reset your password." The auth modal switches to its log-in tab with the email and Draft kept ([ADR 0003](adr/0003-sign-up-reveals-taken-email.md)).
 - **Wrong password** (signed in, changing password or deleting the account): "That password isn't right."
 - **Email changed:** "Your sealed letters will now arrive at the new address."
 
@@ -121,7 +122,7 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 - **Create:**
   - Validate: the body is non-empty, the Delivery date is in `[tomorrow, +5y]` in the Author's tz, and the Author has fewer than 20 PENDING+SCHEDULED Letters.
   - The Letter is created SCHEDULED if the Author is verified, otherwise PENDING.
-  - **Signed out:** the Letter rides in the body of `/sign-up/email` or `/sign-in/email`, so it keeps those routes' rate limits (direct `auth.api` calls skip them). A `hooks.before` refuses an invalid Letter before any account exists; a `hooks.after` seals it. Sign-up seals in `after()` and only for a real new user, since a taken email gets a look-alike response. A log-in refused with `EMAIL_NOT_VERIFIED` has matched the password, so it seals PENDING. Its `callbackURL` is `/sealed/<id>`, where verification links land.
+  - **Signed out:** the Letter rides in the body of `/sign-up/email` or `/sign-in/email`, so it keeps those routes' rate limits (direct `auth.api` calls skip them). A `hooks.before` refuses an invalid Letter before any account exists; a `hooks.after` seals it. A taken email is refused in `hooks.before` with `ACCOUNT_EXISTS` (ADR 0003), so sign-up seals for the new user; a race that still gets better-auth's look-alike response seals nothing. A log-in refused with `EMAIL_NOT_VERIFIED` has matched the password, so it seals PENDING. Its `callbackURL` is `/sealed/<id>`, where verification links land.
   - **Signed in:** a server action seals it directly, with no auth modal.
   - The composer's Draft id (a browser `crypto.randomUUID()`) becomes the Letter id, so re-sending a Draft (say, after an expired link) never makes a second Letter. Sending it with a different email ("Wrong email?") gives it a new id, and an id already held by another Author is refused.
 - **Verify:** better-auth's `emailVerification.afterEmailVerification` flips every PENDING Letter of that user to SCHEDULED.
@@ -135,6 +136,7 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 - **Options:** `emailAndPassword: { enabled, requireEmailVerification: true, sendResetPassword, revokeSessionsOnPasswordReset: true }` and `emailVerification: { sendVerificationEmail, sendOnSignUp: true, sendOnSignIn: true, autoSignInAfterVerification: true, afterEmailVerification }`. `sendOnSignIn` is what makes "Log in and we'll send a fresh one" true. `user: { changeEmail: { enabled: true }, deleteUser: { enabled: true } }`.
 - **Token lifetimes:** 1 h. Sessions last 7 days.
 - **Sending mail:** don't `await` sends inside auth callbacks. Use `after()` / `waitUntil` so response timing can't be used to probe accounts. Each callback hands its send to `after()` itself: better-auth awaits `/send-verification-email` directly, so `advanced.backgroundTasks` doesn't cover it.
+- **Taken email on sign-up:** with `requireEmailVerification`, better-auth answers a taken email with a look-alike user. A `hooks.before` on `/sign-up/email` refuses it first with `ACCOUNT_EXISTS` (422), so sign-up reveals whether an account exists; log-in and password reset still don't ([ADR 0003](adr/0003-sign-up-reveals-taken-email.md)). The rate limit runs before hooks, so the probe stays at 3 a minute.
 - **Rate limiting:** `rateLimit: { storage: "database", window: 60, max: 100, customRules }`; the rules allow 3 requests per 60 s on `/sign-up/email`, `/sign-in/email` (it re-sends verification), `/request-password-reset`, `/send-verification-email` and `/change-email` (it mails whatever address is typed in), since each one sends an email.
 - **`BETTER_AUTH_URL`:**
   - prod: `https://kesho.et`

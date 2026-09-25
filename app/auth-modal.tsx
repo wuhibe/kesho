@@ -8,7 +8,7 @@ import { Notice } from "@/components/notice";
 import { segment } from "@/components/pill";
 import { SubmitButton } from "@/components/submit-button";
 import { authClient } from "@/lib/auth-client";
-import { errorCopy } from "@/lib/copy";
+import { ACCOUNT_EXISTS_CODE, errorCopy } from "@/lib/copy";
 import { formatDate } from "@/lib/delivery-date";
 import type { LetterInput } from "@/lib/letter-input";
 import { rememberInboxEmail } from "./check-inbox/inbox-email";
@@ -51,6 +51,8 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
         router.push("/check-inbox");
         return { email, error: null };
       }
+      // The Letter stays in the modal, so logging in seals it.
+      if (error?.code === ACCOUNT_EXISTS_CODE) setMode("login");
       // A verified log-in needs nothing more: better-auth's client follows its callbackURL.
       return { email, error: error ? errorCopy(error) : null };
     },
