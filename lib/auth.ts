@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { after } from "next/server";
 import { emailChangeEmail, passwordResetEmail, verificationEmail } from "@/emails/account";
-import { LETTER_CAP_CODE, LETTER_CAP_REACHED } from "@/lib/copy";
+import { ACCOUNT_EXISTS, ACCOUNT_EXISTS_CODE, LETTER_CAP_CODE, LETTER_CAP_REACHED } from "@/lib/copy";
 import { db } from "@/lib/db";
 import { type Email, sendAccountEmail } from "@/lib/email";
 import { type LetterInput, parseLetterInput } from "@/lib/letter-input";
@@ -68,8 +68,13 @@ export const auth = betterAuth({
   // The composer's Letter rides on sign-up and log-in, so sealing keeps those routes' rate
   // limits; a server action calling auth.api directly would skip them.
   hooks: {
-    // A bad Letter is refused before any account is made for it.
     before: createAuthMiddleware(async (ctx) => {
+      // better-auth answers a taken email with a look-alike user, which would leave the Author
+      // waiting on /check-inbox with their Letter unsealed; say so instead (ADR 0003).
+      if (ctx.path === "/sign-up/email" && (await hasAccount(ctx.body?.email))) {
+        throw new APIError("UNPROCESSABLE_ENTITY", { code: ACCOUNT_EXISTS_CODE, message: ACCOUNT_EXISTS });
+      }
+      // A bad Letter is refused before any account is made for it.
       // No Letter (null or absent) is a plain sign-up or log-in, e.g. after an expired link.
       if (!SEAL_PATHS.has(ctx.path) || ctx.body?.letter == null) return;
       if (!parseLetterInput(ctx.body.letter)) throw new APIError("BAD_REQUEST", { code: "INVALID_LETTER" });
@@ -90,21 +95,23 @@ export const auth = betterAuth({
         return;
       }
 
-      // Signing up with a taken email returns a look-alike user that was never saved. Seal only
-      // for a real one, after the response, so the extra work can't tell the two apart (SPEC §6).
+      // A sign-up racing another for the same email can still get the look-alike user, which
+      // was never saved, so seal only for a real one.
       const signedUpId = (returned as { user?: { id?: unknown } } | undefined)?.user?.id;
-      if (typeof signedUpId === "string") {
-        after(async () => {
-          const author = await db.user.findUnique({ where: { id: signedUpId } });
-          const outcome = author && (await sealLetter(author, letter));
-          if (outcome && outcome !== "sealed") console.warn(`letter ${letter.id} not sealed at sign-up: ${outcome}`);
-        });
-      }
+      if (typeof signedUpId !== "string") return;
+      const author = await db.user.findUnique({ where: { id: signedUpId } });
+      const outcome = author && (await sealLetter(author, letter));
+      if (outcome && outcome !== "sealed") console.warn(`letter ${letter.id} not sealed at sign-up: ${outcome}`);
     }),
   },
 });
 
 const SEAL_PATHS = new Set(["/sign-up/email", "/sign-in/email"]);
+
+async function hasAccount(email: unknown): Promise<boolean> {
+  if (typeof email !== "string") return false;
+  return (await db.user.count({ where: { email: email.toLowerCase() } })) > 0;
+}
 
 // A verified log-in has already set its session cookie, so a refused Letter still leaves the
 // Author signed in; the modal shows why, and their next send goes through sealForAuthor.
