@@ -3,7 +3,7 @@ import type { DeliveryEmail } from "@/lib/email";
 import { LetterSheet } from "./letter-sheet";
 
 /** A Letter as the delivery email needs it, decrypted. */
-export type OpenedLetter = {
+export type DecryptedLetter = {
   subject: string | null;
   body: string;
   deliveryDate: string;
@@ -15,7 +15,7 @@ export type OpenedLetter = {
  * The delivery email (SPEC §8). Built only from the stored Letter, so a retried send is
  * byte-identical and its idempotency key holds (SPEC §7 step 6).
  */
-export function deliveryEmail(letter: OpenedLetter): DeliveryEmail {
+export function deliveryEmail(letter: DecryptedLetter): DeliveryEmail {
   const written = todayIn(letter.timeZone, letter.createdAt);
   const month = formatMonth(written);
   return {
@@ -25,7 +25,7 @@ export function deliveryEmail(letter: OpenedLetter): DeliveryEmail {
     react: (
       <LetterSheet
         preheader={letter.body.trim().split(/\r?\n/)[0]}
-        label={`Written ${formatDate(written)} · Opened ${formatDate(letter.deliveryDate)}`}
+        label={`Written ${formatDate(written)} · Delivered ${formatDate(letter.deliveryDate)}`}
         subject={letter.subject}
         body={letter.body}
       />

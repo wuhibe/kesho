@@ -191,7 +191,7 @@ Built with React Email, passed to Resend via `react:`, with the plain-text part 
 
 | Email | From | Subject | Look |
 |---|---|---|---|
-| Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · OPENED <date>` label, the subject, the italic serif "Dear future self," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
+| Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · DELIVERED <date>` label, the subject, the italic serif "Dear future self," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
 | Verify | `Kesho <hello@mail.kesho.et>` | "Confirm your email to seal your letter" | **C, envelope:** ink page, sand flap, red stamp "AWAITING YOUR SEAL", "One click to seal it.", a red button **Confirm & seal my letter**, and fine print (1 h expiry, 7-day draft deletion) |
 | Reset | same | "Reset your Kesho password" | C, with the stamp "ACCOUNT", the line "Your sealed letters are safe either way." and the button **Choose a new password** |
 | Change email | same | "Confirm your new email" | C (the verify template), with the stamp "ACCOUNT" and the line "Your sealed letters will arrive here." |

@@ -31,7 +31,7 @@ const Home: FC<PageProps<"/">> = async ({ searchParams }) => {
         <b className="font-semibold text-ink">kesho</b> <span className="font-mono text-xs">/ˈkɛ.ʃɔ/</span>{" "}
         <i>Swahili, adverb.</i> Tomorrow.
       </p>
-      <h1 className="mt-6 font-serif text-4xl italic leading-tight md:mt-10 md:text-6xl">
+      <h1 className="mt-6 font-serif text-2xl italic leading-tight md:mt-10 md:text-4xl">
         Write to yourself. We&apos;ll keep it sealed and email it back on the day you choose.
       </h1>
       <Composer
