@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { chosenDeliveryDate } from "@/lib/delivery-date";
 
 // The composer's draft lives in localStorage, so a reload or the auth detour never loses it
-// (SPEC §3). It stays until its Letter is shown Sealed.
+// (SPEC §3). It stays until its Letter is shown Sealed or the Author logs out.
 
 export type Preset = "6m" | "1y" | "3y" | "5y" | "custom";
 
