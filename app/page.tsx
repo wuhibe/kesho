@@ -12,12 +12,14 @@ const Home: FC<PageProps<"/">> = async ({ searchParams }) => {
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-16 pt-16 md:pt-24">
-      <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Write to the you of tomorrow.</h1>
-      <p className="mt-4 text-lg text-bark">
-        Kesho means tomorrow in Swahili. Write it now; we&apos;ll seal it and email it to you on the day you
-        choose, up to five years from now.
+    <main className="mx-auto max-w-3xl px-6 pb-16 pt-8 md:pt-14">
+      <p className="font-serif text-sm text-bark">
+        <b className="font-semibold text-ink">kesho</b> <span className="font-mono text-xs">/ˈkɛ.ʃɔ/</span>{" "}
+        <i>Swahili, adverb.</i> Tomorrow.
       </p>
+      <h1 className="mt-6 font-serif text-4xl italic leading-tight md:mt-10 md:text-6xl">
+        Write to yourself. We&apos;ll keep it sealed and email it back on the day you choose.
+      </h1>
       <Composer
         isSignedIn={session !== null}
         openAuth={!session && (openAuth === "signup" || openAuth === "login") ? openAuth : null}
