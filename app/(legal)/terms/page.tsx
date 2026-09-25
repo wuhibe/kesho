@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { FC } from "react";
 
-export const metadata: Metadata = { title: "Terms · Kesho" };
+export const metadata: Metadata = { title: "Terms", alternates: { canonical: "/terms" } };
 
 const TermsPage: FC = () => (
   <>

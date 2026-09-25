@@ -7,7 +7,7 @@ import { BARK, CREAM, INK, MONO, PAPER, SAND, SANS, SERIF } from "./theme";
 
 type LetterSheetProps = {
   preheader: string;
-  /** "Written 24 Sept 2026 · Opened 24 Sept 2027" */
+  /** "Written 24 Sept 2026 · Delivered 24 Sept 2027" */
   label: string;
   subject: string | null;
   body: string;

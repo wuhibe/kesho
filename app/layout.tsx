@@ -15,9 +15,13 @@ const newsreader = Newsreader({
 });
 const zeyada = Zeyada({ weight: "400", subsets: ["latin"], variable: "--font-zeyada" });
 
+// Canonicals live in each indexable page, not here: metadata merges shallowly (SPEC §3 SEO).
 export const metadata: Metadata = {
-  title: "Kesho · letters to your future self",
-  description: "Write a letter to your future self. We'll seal it and email it to you on the day you choose.",
+  metadataBase: new URL("https://kesho.et"),
+  title: { default: "Kesho · letters to your future self", template: "%s · Kesho" },
+  description:
+    "Write to yourself. We'll keep it sealed and email it back on the day you choose, up to five years from now.",
+  openGraph: { siteName: "Kesho", type: "website", locale: "en_US" },
 };
 
 const RootLayout: FC<LayoutProps<"/">> = ({ children }) => {

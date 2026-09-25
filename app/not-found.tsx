@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { FC } from "react";
 import { inkPill } from "@/components/pill";
 
-export const metadata: Metadata = { title: "Not found · Kesho" };
+export const metadata: Metadata = { title: "Not found" };
 
 // Unmatched URLs, and a /sealed/[id] Letter that was cancelled or isn't the Author's.
 const NotFound: FC = () => (

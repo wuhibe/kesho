@@ -3,7 +3,7 @@ import type { FC } from "react";
 import { Envelope } from "@/components/envelope";
 import { InboxActions } from "./inbox-actions";
 
-export const metadata: Metadata = { title: "Check your inbox · Kesho" };
+export const metadata: Metadata = { title: "Check your inbox", robots: { index: false } };
 
 const CheckInboxPage: FC = () => (
   <main className="mx-auto flex max-w-2xl flex-col items-center px-6 pb-24 pt-16 text-center">
