@@ -18,7 +18,7 @@ Letters to your future self, emailed on a chosen date. One Next.js app on Vercel
 
 `package.json` already holds the repo tooling (husky, commitlint, `"prepare": "husky"`). When scaffolding Next.js, generate into a temp dir and merge deps/scripts into the existing file; keep `prepare`, and add `lint`, `typecheck` and `test` scripts so the pre-commit hook runs them.
 
-Tests use `node --test` with native type stripping, so a test imports its module with the `.ts` extension. `AGENTS.md` holds the Next.js version notes that `next dev` manages: @AGENTS.md
+Tests use `node --test` with native type stripping, so a test imports its module with the `.ts` extension (DB tests differ; see Clean code → Tests). `AGENTS.md` holds the Next.js version notes that `next dev` manages: @AGENTS.md
 
 ## Workflow
 
@@ -70,6 +70,7 @@ Tests use `node --test` with native type stripping, so a test imports its module
 **Tests**
 - Every piece of non-trivial logic ships with one focused test that fails if the logic breaks: due-date by timezone, encryption round-trip and tamper, lifecycle transitions, the delivery claim, webhook mapping.
 - Test behaviour through the public function; one assertion theme per test; names read as sentences.
+- Functions that query the database are tested in `lib/*.db-test.ts` against a local Postgres: `createdb kesho_test`, then `TEST_DATABASE_URL=postgresql://$USER@localhost:5432/kesho_test pnpm test:db` (it migrates, then empties the tables before each test, so it refuses any non-local host). They run in CI (`.github/workflows/db-tests.yml`), not the pre-commit hook, and load through `tsx` so the `@/` imports resolve.
 
 **Style**
 - Formatting and lint rules live in config; follow the tools.
