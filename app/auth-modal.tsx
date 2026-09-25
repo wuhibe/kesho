@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FC, useActionState, useEffect, useRef, useState } from "react";
+import { type FC, useActionState, useRef, useState } from "react";
 import { Field } from "@/components/field";
+import { Modal } from "@/components/modal";
 import { Notice } from "@/components/notice";
 import { segment } from "@/components/pill";
 import { SubmitButton } from "@/components/submit-button";
@@ -30,8 +31,6 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
   const dialog = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState(initialMode);
   const isSignUp = letter !== null && mode === "signup";
-
-  useEffect(() => dialog.current?.showModal(), []);
 
   // React resets the form after each try, so the email comes back through state.
   const [result, submit, isPending] = useActionState(
@@ -66,76 +65,56 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
   );
 
   return (
-    <dialog
-      ref={dialog}
-      aria-labelledby="auth-title"
-      onClose={onClose}
-      onClick={(event) => event.target === event.currentTarget && dialog.current?.close()}
-      className="m-auto w-[calc(100%-3rem)] max-w-md rounded-4xl bg-paper text-ink shadow-float backdrop:bg-ink/60"
-    >
-      <div className="relative p-8">
-        <h2 id="auth-title" className="pr-8 text-3xl font-medium tracking-tight">
-          {letter ? "Where should it arrive?" : "Welcome back."}
-        </h2>
+    <Modal title={letter ? "Where should it arrive?" : "Welcome back."} onClose={onClose} dialogRef={dialog}>
+      {letter && (
+        <p className="mb-6 mt-2 text-ink/70">
+          Arrives {formatDate(letter.deliveryDate)}. We&apos;ll only ever send it to you.
+        </p>
+      )}
+      <form action={submit} className="mt-4 flex flex-col gap-3">
         {letter && (
-          <p className="mb-6 mt-2 text-ink/70">
-            Arrives {formatDate(letter.deliveryDate)}. We&apos;ll only ever send it to you.
+          <div role="group" aria-label="Account" className="flex rounded-full bg-sand/60 p-1 text-sm">
+            <button type="button" aria-pressed={isSignUp} onClick={() => setMode("signup")} className={segment(isSignUp)}>
+              New here
+            </button>
+            <button type="button" aria-pressed={!isSignUp} onClick={() => setMode("login")} className={segment(!isSignUp)}>
+              I have an account
+            </button>
+          </div>
+        )}
+        <Field label="Email" name="email" type="email" autoComplete="email" defaultValue={result.email} />
+        <Field
+          label={isSignUp ? "Choose a password (8+)" : "Password"}
+          name="password"
+          type="password"
+          minLength={8}
+          autoComplete={isSignUp ? "new-password" : "current-password"}
+        />
+        {!isSignUp && (
+          <Link
+            href="/reset-password"
+            onClick={() => dialog.current?.close()}
+            className="self-end text-sm text-muted underline"
+          >
+            Forgot password?
+          </Link>
+        )}
+        {result.error && <Notice>{result.error}</Notice>}
+        <SubmitButton isPending={isPending}>
+          {isSignUp ? "Create account" : "Log in"}
+          {letter && " & seal letter"}
+        </SubmitButton>
+        {isSignUp && (
+          <p className="text-xs text-ink/60">
+            We&apos;ll email you a link to confirm it&apos;s you. Your letter waits until you click it. By
+            continuing you confirm you&apos;re 16+ and agree to the{" "}
+            <Link href="/terms" className="underline">
+              Terms
+            </Link>
+            .
           </p>
         )}
-        <form action={submit} className="mt-4 flex flex-col gap-3">
-          {letter && (
-            <div role="group" aria-label="Account" className="flex rounded-full bg-sand/60 p-1 text-sm">
-              <button type="button" aria-pressed={isSignUp} onClick={() => setMode("signup")} className={segment(isSignUp)}>
-                New here
-              </button>
-              <button type="button" aria-pressed={!isSignUp} onClick={() => setMode("login")} className={segment(!isSignUp)}>
-                I have an account
-              </button>
-            </div>
-          )}
-          <Field label="Email" name="email" type="email" autoComplete="email" defaultValue={result.email} />
-          <Field
-            label={isSignUp ? "Choose a password (8+)" : "Password"}
-            name="password"
-            type="password"
-            minLength={8}
-            autoComplete={isSignUp ? "new-password" : "current-password"}
-          />
-          {!isSignUp && (
-            <Link
-              href="/reset-password"
-              onClick={() => dialog.current?.close()}
-              className="self-end text-sm text-muted underline"
-            >
-              Forgot password?
-            </Link>
-          )}
-          {result.error && <Notice>{result.error}</Notice>}
-          <SubmitButton isPending={isPending}>
-            {isSignUp ? "Create account" : "Log in"}
-            {letter && " & seal letter"}
-          </SubmitButton>
-          {isSignUp && (
-            <p className="text-xs text-ink/60">
-              We&apos;ll email you a link to confirm it&apos;s you. Your letter waits until you click it. By
-              continuing you confirm you&apos;re 16+ and agree to the{" "}
-              <Link href="/terms" className="underline">
-                Terms
-              </Link>
-              .
-            </p>
-          )}
-        </form>
-        {/* Last in the markup so showModal focuses the form, not Close. */}
-        <button
-          type="button"
-          aria-label="Close"
-          onClick={() => dialog.current?.close()}
-          className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full text-2xl leading-none text-ink/60 transition-colors hover:bg-sand/60 hover:text-ink"
-        >
-          ×
-        </button>
-      </div>
-    </dialog>
+      </form>
+    </Modal>
   );
 };
