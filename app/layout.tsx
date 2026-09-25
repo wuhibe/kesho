@@ -25,8 +25,8 @@ const RootLayout: FC<LayoutProps<"/">> = ({ children }) => {
       lang="en"
       className={`${instrumentSans.variable} ${fragmentMono.variable} ${newsreader.variable} ${zeyada.variable}`}
     >
-      {/* On md+ the composer's send bar floats over the bottom of the page, so the page makes room for it. */}
-      <body className="flex min-h-dvh flex-col font-sans antialiased md:has-data-send-bar:pb-28">
+      {/* The composer's send bar (md+) and phone Send button float over the bottom of the page, so the page makes room. */}
+      <body className="flex min-h-dvh flex-col font-sans antialiased has-data-send-bar:pb-24 md:has-data-send-bar:pb-28">
         <div className="flex-1">{children}</div>
         <Footer />
         {/* Cookieless (SPEC §2), so no consent banner (SPEC §9). */}

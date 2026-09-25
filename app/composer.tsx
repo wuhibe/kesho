@@ -10,8 +10,9 @@ import { DeliveryPicker } from "./delivery-picker";
 import { deliveryDateOf, updateDraft, useDraft } from "./draft";
 import { localTimeZone, useLocalToday } from "./local-today";
 import { sealForAuthor } from "./seal-for-author";
+import { SendDrawer } from "./send-drawer";
 
-/** The letter sheet and send bar (SPEC §3 `/`, Variant A). */
+/** The letter sheet, with the send bar on md+ and the send drawer on phones (SPEC §3 `/`, Variant A). */
 export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = ({ isSignedIn, openAuth }) => {
   const draft = useDraft();
   const today = useLocalToday();
@@ -31,9 +32,21 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
     startSealing(async () => setError(await sealForAuthor(letter)));
   };
 
+  // Rendered in both the bar and the drawer; the copy for the other breakpoint is display:none,
+  // so it stays out of the a11y tree and the date input's autoFocus lands on the visible one.
+  const picker = <DeliveryPicker draft={draft} today={today} deliveryDate={deliveryDate} />;
+  const send = (
+    <div className="flex flex-col gap-2 md:items-end">
+      <button type="button" disabled={!letter || isSealing} onClick={sealOrAskAuth} className={`shrink-0 ${inkPill}`}>
+        Send to the future →
+      </button>
+      {error && <Notice>{error}</Notice>}
+    </div>
+  );
+
   return (
     <>
-      <section className="mt-10 rounded-[28px] bg-paper px-6 py-8 shadow-float md:px-14 md:py-14">
+      <section className="mt-6 rounded-[28px] bg-paper px-6 py-8 shadow-float md:px-14 md:py-14">
         <p className="min-h-4 font-mono text-xs uppercase tracking-[0.2em] text-bark">{today && formatDate(today)}</p>
         <input
           aria-label="Subject (optional)"
@@ -50,25 +63,24 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
           maxLength={BODY_MAX}
           value={draft.body}
           onChange={(event) => updateDraft({ body: event.target.value })}
-          className="field-sizing-content mt-4 min-h-120 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/30"
+          className="field-sizing-content mt-4 min-h-48 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/30 md:min-h-120"
         />
         <p className="mt-2 text-right font-mono text-xs uppercase text-bark">
           {wordCount} {wordCount === 1 ? "word" : "words"}
         </p>
       </section>
 
-      {/* data-send-bar: the root layout pads the page for this bar while it floats (md+). */}
+      {/* data-send-bar: the root layout pads the page for this bar (md+) and the phone Send button. */}
       <div
         data-send-bar
-        className="mt-6 flex flex-col gap-4 rounded-2xl bg-cream/95 p-4 shadow-float md:fixed md:inset-x-6 md:bottom-6 md:z-10 md:mx-auto md:max-w-3xl md:flex-row md:items-center md:justify-between md:px-6">
-        <DeliveryPicker draft={draft} today={today} deliveryDate={deliveryDate} />
-        <div className="flex flex-col gap-2 md:items-end">
-          <button type="button" disabled={!letter || isSealing} onClick={sealOrAskAuth} className={`shrink-0 ${inkPill}`}>
-            Send to the future →
-          </button>
-          {error && <Notice>{error}</Notice>}
-        </div>
+        className="fixed inset-x-6 bottom-6 z-10 mx-auto flex max-w-3xl items-center justify-between gap-4 rounded-2xl bg-cream/95 p-4 px-6 shadow-float max-md:hidden">
+        {picker}
+        {send}
       </div>
+      <SendDrawer>
+        {picker}
+        {send}
+      </SendDrawer>
 
       {authMode && <AuthModal initialMode={authMode} letter={letter} onClose={() => setAuthMode(null)} />}
     </>
