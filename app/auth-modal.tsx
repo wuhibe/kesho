@@ -18,7 +18,8 @@ export type AuthMode = "signup" | "login";
 
 /**
  * "Where should it arrive?" The Letter travels with sign-up or log-in and is sealed by the
- * auth hooks in lib/auth.ts, PENDING until the email is verified (SPEC §3, §5).
+ * auth hooks in lib/auth.ts, PENDING until the email is verified (SPEC §3, §5). With no Letter
+ * it is a plain log-in: an account only starts with a Letter, so there is no sign-up.
  */
 export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; onClose: () => void }> = ({
   initialMode,
@@ -28,7 +29,7 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState(initialMode);
-  const isSignUp = mode === "signup";
+  const isSignUp = letter !== null && mode === "signup";
 
   useEffect(() => dialog.current?.showModal(), []);
 
@@ -39,15 +40,20 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
       const password = String(form.get("password"));
       const sent = letter && { ...letter, id: draftIdFor(email) };
       // Where the emailed verification link, or a verified log-in, lands.
-      const callbackURL = sent ? `/sealed/${sent.id}` : "/";
+      const callbackURL = sent ? `/sealed/${sent.id}` : "/letters";
       const { error } = await authClient.$fetch<unknown, { code?: string }>(
         isSignUp ? "/sign-up/email" : "/sign-in/email",
-        { method: "POST", body: { ...(isSignUp && { name: "" }), email, password, callbackURL, letter: sent } },
+        {
+          method: "POST",
+          body: { ...(isSignUp && { name: "" }), email, password, callbackURL, ...(sent && { letter: sent }) },
+        },
       );
 
       const awaitsVerification = isSignUp ? !error : error?.code === "EMAIL_NOT_VERIFIED";
       if (awaitsVerification) {
         rememberInboxEmail(email);
+        // The header's modal outlives the page, so it closes itself.
+        dialog.current?.close();
         router.push("/check-inbox");
         return { email, error: null };
       }
@@ -69,7 +75,7 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
     >
       <div className="relative p-8">
         <h2 id="auth-title" className="pr-8 text-3xl font-medium tracking-tight">
-          Where should it arrive?
+          {letter ? "Where should it arrive?" : "Welcome back."}
         </h2>
         {letter && (
           <p className="mb-6 mt-2 text-ink/70">
@@ -77,14 +83,16 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
           </p>
         )}
         <form action={submit} className="mt-4 flex flex-col gap-3">
-          <div role="group" aria-label="Account" className="flex rounded-full bg-sand/60 p-1 text-sm">
-            <button type="button" aria-pressed={isSignUp} onClick={() => setMode("signup")} className={segment(isSignUp)}>
-              New here
-            </button>
-            <button type="button" aria-pressed={!isSignUp} onClick={() => setMode("login")} className={segment(!isSignUp)}>
-              I have an account
-            </button>
-          </div>
+          {letter && (
+            <div role="group" aria-label="Account" className="flex rounded-full bg-sand/60 p-1 text-sm">
+              <button type="button" aria-pressed={isSignUp} onClick={() => setMode("signup")} className={segment(isSignUp)}>
+                New here
+              </button>
+              <button type="button" aria-pressed={!isSignUp} onClick={() => setMode("login")} className={segment(!isSignUp)}>
+                I have an account
+              </button>
+            </div>
+          )}
           <Field label="Email" name="email" type="email" autoComplete="email" defaultValue={result.email} />
           <Field
             label={isSignUp ? "Choose a password (8+)" : "Password"}
@@ -94,7 +102,11 @@ export const AuthModal: FC<{ initialMode: AuthMode; letter: LetterInput | null; 
             autoComplete={isSignUp ? "new-password" : "current-password"}
           />
           {!isSignUp && (
-            <Link href="/reset-password" className="self-end text-sm text-muted underline">
+            <Link
+              href="/reset-password"
+              onClick={() => dialog.current?.close()}
+              className="self-end text-sm text-muted underline"
+            >
               Forgot password?
             </Link>
           )}

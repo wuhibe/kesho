@@ -13,7 +13,7 @@ A private message an Author writes to their future self: an optional subject and
 _Avoid_: Note, message, email, capsule
 
 **Draft**:
-The unsent subject and body in the composer, kept in the Author's browser. It becomes a Letter only when sent, and is cleared once that Letter is Sealed.
+The unsent subject and body in the composer, kept in the Author's browser. It becomes a Letter only when sent, and is cleared once that Letter is Sealed or the Author logs out.
 _Avoid_: using it for a Pending Letter
 
 **Delivery date**:
