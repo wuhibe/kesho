@@ -6,7 +6,7 @@ import { decrypt, encrypt } from "./encryption.ts";
 process.env.LETTER_ENCRYPTION_KEY = randomBytes(32).toString("base64");
 
 test("a letter body survives an encrypt/decrypt round-trip", () => {
-  const body = "Dear future me,\nDid you finish the marathon? 🏃🏾";
+  const body = "Dear future self,\nDid you finish the marathon? 🏃🏾";
   const stored = encrypt(body);
   assert.match(stored, /^v1:/);
   assert.equal(decrypt(stored), body);

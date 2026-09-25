@@ -46,10 +46,10 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 
 | Route | Content |
 |---|---|
-| `/` | **Header:** "Write to the you of tomorrow." + "Kesho means tomorrow in Swahili. Write it now; we'll seal it and email it to you on the day you choose, up to five years from now." **Letter sheet:** today's date as a mono label, an optional subject (≤150), the italic script salutation "Dear future me,", a ruled serif body (≤20,000 chars) and a word count. **Send bar:** presets 6 months / 1 year / 3 years / 5 years / Pick a date (`<input type=date min=tomorrow max=+5y>`), the resolved line "→ ARRIVES 24 SEPT 2027 · IN 365 DAYS", and a **Send to the future →** button, disabled until the body has text. The bar floats on md+ and sits inline on mobile. The draft autosaves to `localStorage`. |
+| `/` | **Header:** "Write to the you of tomorrow." + "Kesho means tomorrow in Swahili. Write it now; we'll seal it and email it to you on the day you choose, up to five years from now." **Letter sheet:** today's date as a mono label, an optional subject (≤150), the italic script salutation "Dear future self,", a ruled serif body (≤20,000 chars) and a word count. **Send bar:** presets 6 months / 1 year / 3 years / 5 years / Pick a date (`<input type=date min=tomorrow max=+5y>`), the resolved line "→ ARRIVES 24 SEPT 2027 · IN 365 DAYS", and a **Send to the future →** button, disabled until the body has text. The bar floats on md+ and sits inline on mobile. The draft autosaves to `localStorage`. |
 | Auth modal (over `/`) | "Where should it arrive?", a "New here / I have an account" toggle, email and password (8+), and "Forgot password?" in login mode. **Sign up:** "Create account & seal letter", followed by the consent line: "We'll email you a link… By continuing you confirm you're 16+ and agree to the Terms." **Log in:** "Log in & seal letter". |
-| `/check-inbox` | An envelope stamped PENDING, "Check your inbox." with the echoed email, Resend (30 s cooldown), "Wrong email?" (reopens the modal) and the 7-day discard note |
-| `/sealed/[id]` | An envelope stamped SEALED, "DO NOT OPEN BEFORE <date>", "See you in N days." ("Opens today." / "On its way." once the date has come), and Write another / My letters |
+| `/check-inbox` | An envelope addressed "to my future self" and stamped PENDING, "Check your inbox." with the echoed email, Resend (30 s cooldown), "Wrong email?" (reopens the modal) and the 7-day discard note |
+| `/sealed/[id]` | The same envelope stamped SEALED, "DO NOT OPEN BEFORE <date>", "See you in N days." ("Opens today." / "On its way." once the date has come), and Write another / My letters |
 | `/letters` (auth) | "Your letters". An Undeliverable banner ("One letter couldn't reach you… Update your email") when relevant. **Sealed · N of 20:** subject or "Untitled letter", `OPENS <date> · N DAYS` (`OPENS TODAY` on the day, `ON ITS WAY` once past it and awaiting the run) or `PENDING · VERIFY YOUR EMAIL`, and Cancel with an inline "Delete forever?" confirm. **Archive:** expandable rows with the body in serif, marked UNDELIVERABLE where relevant, plus Delete with the same "Delete forever?" confirm. **Account:** Change email / Change password (signs out every other session) / Delete account (the password is the confirm). Empty state: "Nothing sealed yet. Future you is waiting." |
 | `/reset-password` | request form + set-new-password form (token from email) |
 | `/terms`, `/privacy` | see §9 |
@@ -67,7 +67,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 - **Brand:** don't copy the givingli brand or its fonts.
 - **Logo mark:** "Tomorrow's sun": a paper `#faf7f1` half sun over two horizon bars on a red `#c42121` rounded square. The files are `app/icon.svg` (master), `app/favicon.ico` (16/32/48) and `app/apple-icon.png` (180, full-bleed; iOS rounds it). Next.js serves them by file convention, so no `<link>` tags are needed.
 
-**Copy strings:**
+**Copy strings:** no em-dashes; use a middle dot or a full stop. The page `<title>` is "Kesho · letters to your future self", matching the footer.
 - **20-letter cap:** "You have 20 sealed letters, the most we hold at once. Let one arrive or cancel one to write another."
 - **Expired or used link:** "This link has expired. Log in and we'll send a fresh one." On `/reset-password`, where logging in isn't an option: "This link has expired. Enter your email and we'll send a fresh one."
 - **Rate limited:** "Too many tries. Wait a minute and try again."
@@ -178,7 +178,7 @@ Built with React Email, passed to Resend via `react:`, with the plain-text part 
 
 | Email | From | Subject | Look |
 |---|---|---|---|
-| Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · OPENED <date>` label, the subject, the italic serif "Dear future me," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
+| Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · OPENED <date>` label, the subject, the italic serif "Dear future self," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
 | Verify | `Kesho <hello@mail.kesho.et>` | "Confirm your email to seal your letter" | **C, envelope:** ink page, sand flap, red stamp "AWAITING YOUR SEAL", "One click to seal it.", a red button **Confirm & seal my letter**, and fine print (1 h expiry, 7-day draft deletion) |
 | Reset | same | "Reset your Kesho password" | C, with the stamp "ACCOUNT", the line "Your sealed letters are safe either way." and the button **Choose a new password** |
 | Change email | same | "Confirm your new email" | C (the verify template), with the stamp "ACCOUNT" and the line "Your sealed letters will arrive here." |
