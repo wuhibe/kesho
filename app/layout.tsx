@@ -15,7 +15,7 @@ const newsreader = Newsreader({
 const zeyada = Zeyada({ weight: "400", subsets: ["latin"], variable: "--font-zeyada" });
 
 export const metadata: Metadata = {
-  title: "Kesho — letters to your future self",
+  title: "Kesho · letters to your future self",
   description: "Write a letter to your future self. We'll seal it and email it to you on the day you choose.",
 };
 

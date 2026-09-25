@@ -74,3 +74,4 @@ Tests use `node --test` with native type stripping, so a test imports its module
 **Style**
 - Formatting and lint rules live in config; follow the tools.
 - Tailwind tokens from the theme (`bg-paper`, `text-ink`); focus styles stay neutral ink (SPEC §3).
+- No em-dashes in copy; use a middle dot or a full stop.

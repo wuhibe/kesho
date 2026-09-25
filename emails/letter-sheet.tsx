@@ -29,7 +29,7 @@ export const LetterSheet: FC<LetterSheetProps> = ({ preheader, label, subject, b
             {subject}
           </Heading>
         )}
-        <Text style={{ font: `italic 30px ${SERIF}`, color: INK, margin: "28px 0 8px" }}>Dear future me,</Text>
+        <Text style={{ font: `italic 30px ${SERIF}`, color: INK, margin: "28px 0 8px" }}>Dear future self,</Text>
         {paragraphs(body).map((lines, i) => (
           <Text key={i} style={{ font: `19px/1.7 ${SERIF}`, color: INK, margin: "0 0 18px" }}>
             {lines.map((line, j) => (
