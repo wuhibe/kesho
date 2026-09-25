@@ -4,22 +4,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { FC } from "react";
 import { Notice } from "@/components/notice";
-import { ghostPill, inkPill } from "@/components/pill";
+import { inkPill } from "@/components/pill";
 import { auth } from "@/lib/auth";
 import { EMAIL_CHANGED, SOMETHING_WENT_WRONG } from "@/lib/copy";
 import { listLetters } from "@/lib/letters";
 import { LETTER_CAP } from "@/lib/seal-rules";
+import { AccountSettings } from "./account-settings";
 import { ArchivedLetterRow } from "./archived-letter-row";
-import { ChangeEmailForm } from "./change-email-form";
-import { ChangePasswordForm } from "./change-password-form";
-import { DeleteAccountForm } from "./delete-account-form";
 import { SealedLetterRow } from "./sealed-letter-row";
 
 export const metadata: Metadata = { title: "Your letters · Kesho" };
 
 const sectionLabel = "mt-12 font-mono text-xs uppercase text-bark";
 const rows = "mt-4 divide-y divide-ink/10 border-y border-ink/10";
-const accountSummary = `inline-block cursor-pointer list-none [&::-webkit-details-marker]:hidden ${ghostPill}`;
 
 // A confirmed change-email link lands here with ?email=changed, plus &error=… once expired or used.
 const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
@@ -30,7 +27,7 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
   if (!session) redirect("/?auth=login");
   const { sealed, archive } = await listLetters(session.user.id);
   const emailNotice = email === "changed" && (error === undefined ? EMAIL_CHANGED : SOMETHING_WENT_WRONG);
-  // Verifying a new email requeues Undeliverable Letters, so the banner points at Change email, opened.
+  // Verifying a new email requeues Undeliverable Letters, so the banner opens Change email.
   const hasUndeliverable = archive.some((letter) => letter.status === "UNDELIVERABLE");
 
   return (
@@ -49,9 +46,9 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
       {hasUndeliverable && (
         <p className="mt-8 rounded-xl bg-paper p-4 text-sm shadow-float">
           <b>One letter couldn&apos;t reach you.</b> Your email bounced.{" "}
-          <a href="#change-email" className="text-red underline">
+          <Link href="/letters?settings=email" scroll={false} className="text-red underline">
             Update your email
-          </a>{" "}
+          </Link>{" "}
           and we&apos;ll send it again.
         </p>
       )}
@@ -81,27 +78,7 @@ const LettersPage: FC<PageProps<"/letters">> = async ({ searchParams }) => {
       )}
 
       <h2 className={sectionLabel}>Account</h2>
-      <p className="mt-2 text-sm text-bark">Letters arrive at {session.user.email}.</p>
-      <div className="mt-4 flex flex-col gap-4">
-        <details id="change-email" open={hasUndeliverable}>
-          <summary className={accountSummary}>Change email</summary>
-          <div className="mt-4">
-            <ChangeEmailForm currentEmail={session.user.email} />
-          </div>
-        </details>
-        <details>
-          <summary className={accountSummary}>Change password</summary>
-          <div className="mt-4">
-            <ChangePasswordForm />
-          </div>
-        </details>
-        <details>
-          <summary className={`${accountSummary} text-red`}>Delete account</summary>
-          <div className="mt-4">
-            <DeleteAccountForm />
-          </div>
-        </details>
-      </div>
+      <AccountSettings email={session.user.email} />
     </main>
   );
 };
