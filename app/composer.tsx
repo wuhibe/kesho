@@ -33,7 +33,7 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
   };
 
   // Rendered in both the bar and the drawer; the copy for the other breakpoint is display:none,
-  // so it stays out of the a11y tree and the date input's autoFocus lands on the visible one.
+  // so it stays out of the a11y tree.
   const picker = <DeliveryPicker draft={draft} today={today} deliveryDate={deliveryDate} />;
   const send = (
     <div className="flex flex-col gap-2 md:items-end">
