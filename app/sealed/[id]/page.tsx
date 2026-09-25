@@ -13,7 +13,7 @@ import { findSealedLetter } from "@/lib/letters";
 import { arrivalNote, daysUntil } from "@/lib/sealed-label";
 import { ClearDraft } from "./clear-draft";
 
-export const metadata: Metadata = { title: "Sealed · Kesho" };
+export const metadata: Metadata = { title: "Sealed", robots: { index: false } };
 
 // Verification links land here (with ?error=… once expired or used), as does a log-in that sealed.
 const SealedPage: FC<PageProps<"/sealed/[id]">> = async ({ params, searchParams }) => {

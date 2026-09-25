@@ -3,7 +3,7 @@ import type { FC } from 'react';
 import { NewPasswordForm } from './new-password-form';
 import { RequestResetForm } from './request-reset-form';
 
-export const metadata: Metadata = { title: 'Reset your password · Kesho' };
+export const metadata: Metadata = { title: 'Reset your password', robots: { index: false } };
 
 // The emailed link lands here via better-auth with ?token=… or, if it expired, ?error=INVALID_TOKEN.
 const ResetPasswordPage: FC<PageProps<'/reset-password'>> = async ({ searchParams }) => {

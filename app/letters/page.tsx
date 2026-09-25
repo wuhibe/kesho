@@ -13,7 +13,7 @@ import { AccountSettings } from "./account-settings";
 import { ArchivedLetterRow } from "./archived-letter-row";
 import { SealedLetterRow } from "./sealed-letter-row";
 
-export const metadata: Metadata = { title: "Your letters · Kesho" };
+export const metadata: Metadata = { title: "Your letters", robots: { index: false } };
 
 const sectionLabel = "mt-12 font-mono text-xs uppercase text-bark";
 const rows = "mt-4 divide-y divide-ink/10 border-y border-ink/10";

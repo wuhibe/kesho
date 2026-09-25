@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { FC } from "react";
 
-export const metadata: Metadata = { title: "Privacy · Kesho" };
+export const metadata: Metadata = { title: "Privacy", alternates: { canonical: "/privacy" } };
 
 const PrivacyPage: FC = () => (
   <>
