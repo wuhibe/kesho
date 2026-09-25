@@ -2,7 +2,8 @@
 
 import type { FC } from "react";
 import { chip } from "@/components/pill";
-import { dayCount, daysBetween, deliveryDateRange, formatDate } from "@/lib/delivery-date";
+import { dayCount, daysBetween, formatDate } from "@/lib/delivery-date";
+import { DeliveryCalendar } from "./delivery-calendar";
 import { type Draft, PRESETS, updateDraft } from "./draft";
 
 export const DeliveryPicker: FC<{ draft: Draft; today: string | null; deliveryDate: string | null }> = ({
@@ -10,7 +11,6 @@ export const DeliveryPicker: FC<{ draft: Draft; today: string | null; deliveryDa
   today,
   deliveryDate,
 }) => {
-  const range = today ? deliveryDateRange(today) : null;
   const isCustom = draft.preset === "custom";
   const days = today && deliveryDate ? daysBetween(today, deliveryDate) : null;
 
@@ -29,23 +29,7 @@ export const DeliveryPicker: FC<{ draft: Draft; today: string | null; deliveryDa
             {preset.label}
           </button>
         ))}
-        {isCustom ? (
-          <input
-            type="date"
-            aria-label="Delivery date"
-            autoFocus
-            required
-            min={range?.min}
-            max={range?.max}
-            value={draft.customDate}
-            onChange={(event) => updateDraft({ customDate: event.target.value })}
-            className="rounded-full border border-ink bg-white px-4 py-2 text-sm"
-          />
-        ) : (
-          <button type="button" aria-pressed={false} onClick={() => updateDraft({ preset: "custom" })} className={chip(false)}>
-            Pick a date
-          </button>
-        )}
+        <DeliveryCalendar draft={draft} today={today} deliveryDate={deliveryDate} />
       </div>
       <p aria-live="polite" className="min-h-4 font-mono text-xs uppercase text-bark">
         {deliveryDate && days !== null ? (
