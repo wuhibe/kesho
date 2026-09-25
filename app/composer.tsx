@@ -41,9 +41,9 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
           maxLength={SUBJECT_MAX}
           value={draft.subject}
           onChange={(event) => updateDraft({ subject: event.target.value })}
-          className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-3xl font-medium tracking-tight placeholder:text-ink/30"
+          className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-2xl font-medium tracking-tight sm:text-3xl placeholder:text-ink/30"
         />
-        <p className="mt-8 font-script text-5xl">Dear future self,</p>
+        <p className="mt-8 font-script text-4xl sm:text-5xl">Dear future self,</p>
         <textarea
           aria-label="Your letter"
           placeholder="Start writing…"

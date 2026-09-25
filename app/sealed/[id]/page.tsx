@@ -8,9 +8,9 @@ import { Notice } from "@/components/notice";
 import { ghostPill, inkPill } from "@/components/pill";
 import { auth } from "@/lib/auth";
 import { LINK_EXPIRED_LOG_IN } from "@/lib/copy";
-import { formatDate } from "@/lib/delivery-date";
+import { dayCount, formatDate } from "@/lib/delivery-date";
 import { findSealedLetter } from "@/lib/letters";
-import { arrivalNote, dayCount, daysUntil } from "@/lib/sealed-label";
+import { arrivalNote, daysUntil } from "@/lib/sealed-label";
 import { ClearDraft } from "./clear-draft";
 
 export const metadata: Metadata = { title: "Sealed · Kesho" };
@@ -46,7 +46,7 @@ const SealedPage: FC<PageProps<"/sealed/[id]">> = async ({ params, searchParams 
           <span className="text-red">{note}.</span>
         ) : (
           <>
-            See you in <span className="text-red">{dayCount(days)}.</span>
+            See you in <span className="whitespace-nowrap text-red">{dayCount(days)}.</span>
           </>
         )}
       </h1>

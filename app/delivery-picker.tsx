@@ -2,7 +2,7 @@
 
 import type { FC } from "react";
 import { chip } from "@/components/pill";
-import { daysBetween, deliveryDateRange, formatDate } from "@/lib/delivery-date";
+import { dayCount, daysBetween, deliveryDateRange, formatDate } from "@/lib/delivery-date";
 import { type Draft, PRESETS, updateDraft } from "./draft";
 
 export const DeliveryPicker: FC<{ draft: Draft; today: string | null; deliveryDate: string | null }> = ({
@@ -48,7 +48,14 @@ export const DeliveryPicker: FC<{ draft: Draft; today: string | null; deliveryDa
         )}
       </div>
       <p aria-live="polite" className="min-h-4 font-mono text-xs uppercase text-bark">
-        {deliveryDate && days !== null && `→ Arrives ${formatDate(deliveryDate)} · in ${days} ${days === 1 ? "day" : "days"}`}
+        {deliveryDate && days !== null ? (
+          <>
+            → Arrives {formatDate(deliveryDate)} ·{" "}
+            <span className="whitespace-nowrap">in {dayCount(days)}</span>
+          </>
+        ) : (
+          isCustom && today && "Choose when it arrives"
+        )}
       </p>
     </fieldset>
   );

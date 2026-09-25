@@ -11,3 +11,4 @@ lib/generated/
 givingli-design/
 .claude/worktrees/
 .claude/settings.local.json
+.claude/launch.json
