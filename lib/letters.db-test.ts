@@ -16,7 +16,8 @@ process.env.LETTER_ENCRYPTION_KEY = randomBytes(32).toString("base64");
 // Imported after the env is set: lib/db.ts reads DATABASE_URL on import.
 const { db } = await import("@/lib/db");
 const { encrypt } = await import("@/lib/encryption");
-const { claimLetters, deleteLetter, listLetters, scheduleVerifiedLetters, sealLetter } = await import("@/lib/letters");
+const { claimLetters, countSendsToday, deleteLetter, listLetters, scheduleVerifiedLetters, sealLetter, undeliveredToday } =
+  await import("@/lib/letters");
 
 const now = new Date("2027-01-02T06:00:00Z");
 const due = new Date("2027-01-01");
@@ -135,6 +136,27 @@ test("two runs at once never claim the same Letter", async () => {
   assert.equal(new Set(ids).size, 10);
 });
 
+test("today's sends count Letters delivered today and Letters another run is sending", async () => {
+  const ada = await addAuthor();
+  await addLetter(ada, { status: "DELIVERED", deliveredAt: now });
+  await addLetter(ada, { status: "DELIVERED", deliveredAt: new Date("2027-01-01T06:00:00Z") });
+  await addLetter(ada, { status: "SENDING", claimedAt: now });
+
+  assert.equal(await countSendsToday(now), 2);
+});
+
+test("the failure report lists what today's runs left undelivered, and nothing else", async () => {
+  const ada = await addAuthor();
+  const failedToday = await addLetter(ada, { status: "UNDELIVERABLE", claimedAt: now, attempts: 3, lastError: "application_error" });
+  const stillDue = await addLetter(ada, { status: "SCHEDULED", attempts: 1, lastError: "application_error" });
+  const heldByDeadRun = await addLetter(ada, { status: "SENDING", claimedAt: now });
+  await addLetter(ada, { status: "UNDELIVERABLE", claimedAt: new Date("2026-12-01T06:00:00Z") });
+  await addLetter(ada, { status: "SCHEDULED", deliveryDate: new Date("2027-06-01") });
+  await addLetter(ada, { status: "DELIVERED", claimedAt: now });
+
+  assert.deepEqual(idsOf(await undeliveredToday(now)), [failedToday, stillDue, heldByDeadRun].sort());
+});
+
 async function addAuthor(): Promise<string> {
   const id = randomUUID();
   await db.user.create({ data: { id, name: "Author", email: `${id}@example.com`, emailVerified: true } });
@@ -143,7 +165,16 @@ async function addAuthor(): Promise<string> {
 
 async function addLetter(
   authorId: string,
-  fields: { status: LetterStatus; body?: string; deliveryDate?: Date; createdAt?: Date; attempts?: number; lastError?: string },
+  fields: {
+    status: LetterStatus;
+    body?: string;
+    deliveryDate?: Date;
+    createdAt?: Date;
+    claimedAt?: Date;
+    deliveredAt?: Date;
+    attempts?: number;
+    lastError?: string;
+  },
 ): Promise<string> {
   const { body = encrypt("Dear future me"), deliveryDate = due, ...rest } = fields;
   const letter = await db.letter.create({

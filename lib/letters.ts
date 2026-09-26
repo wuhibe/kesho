@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import type { LetterStatus } from "@/lib/generated/prisma/client";
 import { addDays, fromUtcDate, isDue, todayIn, toUtcDate } from "@/lib/delivery-date";
-import { afterBounce, type Bounce, type DeliveryUpdate } from "@/lib/delivery-rules";
+import { afterBounce, type Bounce, type DeliveryUpdate, lastRunTime, type UndeliveredLetter } from "@/lib/delivery-rules";
 import { decrypt, encrypt } from "@/lib/encryption";
 import type { LetterInput } from "@/lib/letter-input";
 import { initialStatus, type SealingAuthor, sealOutcome } from "@/lib/seal-rules";
@@ -71,8 +71,8 @@ export async function sealLetter(
 export async function scheduleVerifiedLetters(authorId: string): Promise<void> {
   await db.$transaction([
     db.letter.updateMany({ where: { authorId, status: "PENDING" }, data: { status: "SCHEDULED" } }),
-    // ponytail: attempts = 0 reuses the key delivery/<id>/0; if that first send was under 24 h ago,
-    // Resend refuses the changed payload, costing one attempt and a day. A requeue counter in the key if that bites.
+    // ponytail: attempts = 0 reuses the key <env>/delivery/<id>/0; if that first send was under 24 h ago,
+    // Resend refuses the changed payload, costing one attempt; the run's retry sends it under the next key.
     db.letter.updateMany({
       where: { authorId, status: "UNDELIVERABLE" },
       data: { status: "SCHEDULED", attempts: 0, lastError: null },
@@ -155,9 +155,32 @@ export async function releaseStaleClaims(now: Date): Promise<number> {
   return count;
 }
 
-/** Delivery emails sent since midnight UTC, for the run's budget (SPEC §7 step 4). */
-export async function countDeliveredToday(now: Date): Promise<number> {
-  return db.letter.count({ where: { deliveredAt: { gte: toUtcDate(todayIn("UTC", now)) } } });
+/**
+ * Delivery emails sent since midnight UTC, plus any a run is sending now, for the budget (SPEC §7
+ * step 4): two overlapping runs then share one budget instead of each taking a full one.
+ */
+export async function countSendsToday(now: Date): Promise<number> {
+  return db.letter.count({
+    where: { OR: [{ deliveredAt: { gte: toUtcDate(todayIn("UTC", now)) } }, { status: "SENDING" }] },
+  });
+}
+
+/**
+ * What today's runs left undelivered, for the failure report (SPEC §7): Letters made
+ * Undeliverable today, Letters due by the last run still Scheduled, and any still SENDING.
+ */
+export async function undeliveredToday(now: Date): Promise<UndeliveredLetter[]> {
+  return db.letter.findMany({
+    where: {
+      OR: [
+        { status: "UNDELIVERABLE", claimedAt: { gte: toUtcDate(todayIn("UTC", now)) } },
+        { status: "SENDING" },
+        { id: { in: await dueIds(lastRunTime(now)) } },
+      ],
+    },
+    select: { id: true, status: true, attempts: true, lastError: true },
+    orderBy: { id: "asc" },
+  });
 }
 
 /** Letters still waiting for a delivery run. */

@@ -4,14 +4,18 @@ import { routeEmail } from "@/lib/email-redirect";
 
 export type Email = { subject: string; react: ReactElement };
 export type DeliveryEmail = Email & { from: string };
+/** A plain-text email to the owner's ops inbox. */
+export type OpsEmail = { subject: string; text: string };
 /** What sending one delivery email came to; `error` is Resend's error name. */
 export type SendResult = { ok: true; emailId: string } | { ok: false; isQuota: boolean; error: string };
+
+const ACCOUNT_FROM = "Kesho <hello@mail.kesho.et>";
 
 // Resend renders `react` and derives the plain-text part itself (SPEC §8).
 export async function sendAccountEmail(to: string, { subject, react }: Email): Promise<void> {
   const routed = routeEmail(to, subject);
   const { data, error } = await resend().emails.send({
-    from: "Kesho <hello@mail.kesho.et>",
+    from: ACCOUNT_FROM,
     replyTo: "hello@kesho.et",
     to: routed.to,
     subject: routed.subject,
@@ -20,6 +24,18 @@ export async function sendAccountEmail(to: string, { subject, react }: Email): P
   // Error names only: Resend messages can echo the recipient address.
   if (error) throw new Error(`Resend rejected an account email: ${error.name}`);
   console.info(`account email sent: ${data.id}`);
+}
+
+/** Sends the failure report to the owner's ops inbox (SPEC §7). */
+export async function sendOpsEmail({ subject, text }: OpsEmail): Promise<void> {
+  const routed = routeEmail("ops@kesho.et", subject);
+  const { error } = await resend().emails.send({
+    from: ACCOUNT_FROM,
+    to: routed.to,
+    subject: routed.subject,
+    text,
+  });
+  if (error) throw new Error(`Resend rejected the ops email: ${error.name}`);
 }
 
 /**

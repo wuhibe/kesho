@@ -35,7 +35,7 @@ Every section links to the ticket that decided it. The planning map is [Wayfinde
 | DB connection | one module-level `pg` Pool + `attachDatabasePool` (Vercel Fluid) | |
 | Auth | better-auth `emailAndPassword` + `emailVerification`, `prismaAdapter` | see §6 |
 | Email | Resend Free (100/day, 3,000/month shared across all mail), React Email templates | see §8 |
-| Scheduler | Vercel Cron `0 6 * * *` (fires 06:00–06:59 UTC, 300 s max) | see §7 |
+| Scheduler | Vercel Cron: delivery `0 6`, `0 7`, `0 8 * * *`, failure report `0 9 * * *` (each fires within its hour, 300 s max) | see §7 |
 | Encryption | `node:crypto` AES-256-GCM, app-held key | see [ADR 0002](adr/0002-app-held-key-encryption.md) |
 | Analytics | Vercel Web Analytics (cookieless) | |
 | Backups | weekly GitHub Action `pg_dump` → Cloudflare R2 | see §10 |
@@ -124,8 +124,8 @@ model WebhookEvent {            // dedupe Resend/svix deliveries
 ```
 PENDING ──Author verifies email──▶ SCHEDULED ──daily run claims──▶ SENDING ──ok──▶ DELIVERED
                                      ▲   ▲                            │
-                                     │   └── soft fail, attempts<3 ◀──┤
-            new email verified ──────┘                                └─ hard bounce / suppressed / complaint / 3rd fail ─▶ UNDELIVERABLE
+                                     │   └── soft fail, attempts<12 ◀─┤
+            new email verified ──────┘                                └─ hard bounce / suppressed / complaint / 12th fail ▶ UNDELIVERABLE
 Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDELIVERABLE) = hard delete
 ```
 
@@ -157,33 +157,44 @@ Cancel (PENDING|SCHEDULED) = hard delete · Delete from Archive (DELIVERED|UNDEL
 
 ## 7. Delivery run — [Email + cron](https://github.com/wuhibe/kesho/issues/3), [ADR 0001](adr/0001-daily-run-local-date-delivery.md)
 
-`GET /api/cron/deliver`. Requests without `Authorization: Bearer $CRON_SECRET` are rejected, and so are requests where the secret is unset.
+`GET /api/cron/deliver`, run by Vercel Cron at 06:00, 07:00 and 08:00 UTC (Hobby allows each cron once a day and fires it anywhere in its hour). The later runs retry what the first left and release claims from a run that died. Requests without `Authorization: Bearer $CRON_SECRET` are rejected, and so are requests where the secret is unset.
 
 1. **Establish the run time.** `now` is the current time. Outside production (`VERCEL_ENV !== 'production'`) a `?now=YYYY-MM-DD` override is honoured, taken at 06:00 UTC like the cron.
 2. **Release stale claims.** SENDING rows with `claimedAt < now − 1h` go back to SCHEDULED.
 3. **Purge.** Delete unverified users with `createdAt < now − 7d`; their PENDING Letters cascade.
-4. **Work out the budget.** `min(90, 100 − emails sent today)`. Sends-today counts Letters with `deliveredAt` since midnight UTC.
+4. **Work out the budget.** `min(90, 100 − emails sent today)`. Sends-today counts Letters with `deliveredAt` since midnight UTC, plus any SENDING, so two overlapping runs share one budget.
 5. **Claim the due Letters.** A Letter is due when it is SCHEDULED and `now`, converted to its `timeZone`, has reached its `deliveryDate`. That rule is `isDue` in `lib/delivery-date.ts`, so it has a test: the run loads SCHEDULED Letters dated up to UTC's tomorrow (no timezone is a whole day ahead), keeps the due ones and claims them atomically, where `<due>` is `id = ANY($dueIds) AND status = 'SCHEDULED'`:
    ```sql
    UPDATE "Letter" SET status='SENDING', "claimedAt"=$now
    WHERE id IN (SELECT id FROM "Letter" WHERE <due> ORDER BY "deliveryDate","createdAt" LIMIT $budget FOR UPDATE SKIP LOCKED)
    RETURNING *
    ```
-6. **Send each Letter.** One `POST /emails` per Letter with `Idempotency-Key: delivery/<id>/<attempts>`. The payload must be byte-identical across retries: build it only from stored data.
+6. **Send each Letter.** One `POST /emails` per Letter with `Idempotency-Key: <VERCEL_ENV or local>/delivery/<id>/<attempts>`. The environment prefix stops a local or preview run on copied data from spending production's key, which Resend would then refuse for 24 h. The payload must be byte-identical across retries: build it only from stored data.
 7. **Handle the result.**
    - **Success:** DELIVERED, set `deliveredAt` and `resendEmailId`.
    - **Quota 429:** back to SCHEDULED, with no attempt counted.
-   - **Other failure:** `attempts+1` and back to SCHEDULED; on the 3rd failure the Letter becomes UNDELIVERABLE.
+   - **Other failure:** `attempts+1` and back to SCHEDULED. On the 12th failure the Letter becomes UNDELIVERABLE. That is about two days of runs, enough to ride out a Resend outage.
+8. **Retry once.** If any send failed, wait 2 minutes, then repeat steps 4–7 for at most that many Letters. The failed Letters are claimed again under their new `attempts`, so each retry has a new key. Hobby stops a function at 300 s, so the retry takes only as many Letters as fit in the time left, at ~1 s a send. The 07:00 and 08:00 runs cover longer outages.
 
 Overflow waits for the next day's run. A missed or doubled cron run is harmless: the claim step and the idempotency key cover it.
+
+**Failure report** `GET /api/cron/report`, run at 09:00 UTC after the last delivery run, with the same `CRON_SECRET` check and `?now=` rule:
+- It lists Letters made UNDELIVERABLE today (`claimedAt` since midnight UTC), Letters that were due by 08:00 UTC but are still SCHEDULED, and any Letter still SENDING. Due-ness is judged at 08:00, so a Letter that only becomes due later that day (Alaska, Hawaii) isn't a false alarm.
+- If there are any, it emails a plain-text list to `ops@kesho.et`: id, status, attempts and `lastError`, never content or emails. On a day with nothing to list it sends nothing.
+- The 08:00 run's logs are usually still in Vercel's 1-hour window when the report arrives. Earlier runs' logs are gone, but each Letter's `lastError` stays in the database.
+- A Delivered Letter's `lastError` is cleared, so an error in the report is always the current one.
+- **Known limits:**
+  - A hard bounce the webhook records after the report goes out is never reported. A soft one shows up as due the next day.
+  - An 08:00 run that fires late and is still sending at 09:00 shows as SENDING.
+  - The report is one of the 10 emails kept outside the run's budget. If the day's quota is already spent, it fails.
 
 **Bounce webhook** `POST /api/webhooks/resend` (production only):
 - Verify the svix signature with `RESEND_WEBHOOK_SECRET`.
 - Dedupe on `svix-id` via `WebhookEvent`, then map `resendEmailId` → Letter.
 - `email.bounced` (Permanent), `email.suppressed` or `email.complained` → UNDELIVERABLE at once.
-- Transient/Undetermined bounces and `email.failed` → `attempts+1`, back to SCHEDULED, and UNDELIVERABLE at 3.
+- Transient/Undetermined bounces and `email.failed` → `attempts+1`, back to SCHEDULED, and UNDELIVERABLE at 12.
 - Only a DELIVERED Letter moves, so a late event can't undo a requeue. An event that matches no Letter while a run holds SENDING Letters gets a 503, and svix retries it, since its Letter's send may not be recorded yet.
-- **Known limit:** a requeue resets `attempts` to 0, so it reuses `delivery/<id>/0`. If that first send was under 24 h ago, Resend refuses the new payload. This costs one attempt and a day.
+- **Known limit:** a requeue resets `attempts` to 0, so it reuses `<env>/delivery/<id>/0`. If that first send was under 24 h ago, Resend refuses the new payload. This costs one attempt, and the retry in step 8 sends it under the next key.
 
 ## 8. Email — [Sender identity](https://github.com/wuhibe/kesho/issues/9), [Templates](https://github.com/wuhibe/kesho/issues/10)
 
@@ -227,7 +238,7 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
 | DB | Neon `dev` branch | Neon `dev` branch (per-preview branching **off**) | Neon `main`; `prisma migrate deploy` in the build |
 | Email | redirected | redirected | real |
 | Resend key | dev sending-only | dev | prod sending-only (mail.kesho.et) |
-| Cron | manual curl + `?now=` | manual curl + `?now=` | Vercel Cron |
+| Cron | manual curl + `?now=` | manual curl + `?now=` | Vercel Cron: deliver 06/07/08:00, report 09:00 UTC |
 | Webhook | — | — | `https://kesho.et/api/webhooks/resend` |
 | Encryption key | dev | dev | **prod key already generated and in the owner's password manager: use it, never generate a new one** |
 
@@ -237,7 +248,7 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
   - `.gitignore` lists `.env*`.
 - **Domain:** `kesho.et` is canonical; `www` gets a 308 redirect to the apex.
 - **DNS:** lives in Cloudflare. The Vercel A/CNAME records are **DNS only**.
-- **Email setup:** Resend sends from `mail.kesho.et` (already verified). Cloudflare Email Routing forwards `hello@kesho.et` to the owner (live).
+- **Email setup:** Resend sends from `mail.kesho.et` (already verified). Cloudflare Email Routing forwards `hello@kesho.et` to the owner (live). `ops@kesho.et` receives the failure report, so it needs its own forwarding rule.
 - **Backups:**
   - A weekly Sunday GitHub Action (`.github/workflows/backup.yml`) runs `pg_dump` 18 of `main` and uploads `kesho-<YYYY-MM-DD>.dump` to R2, keeping the last 8.
   - Secrets: `BACKUP_DATABASE_URL` (main's unpooled URL), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
@@ -250,6 +261,7 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
 - [x] Resend webhook (prod) + `RESEND_WEBHOOK_SECRET`
 - [x] R2 bucket + token + backup Action + one restore drill
 - [x] `security.txt`, Vercel Web Analytics on
+- [ ] Cloudflare Email Routing rule `ops@kesho.et` → owner, for the failure report (ask first)
 - [ ] **Tighten DMARC to `p=quarantine` ~2026-10-15 to 2026-10-22** (the reminder is in the owner's calendar)
 - [ ] Verify `kesho.et` in Google Search Console and Bing Webmaster Tools (DNS TXT in Cloudflare; ask first), then submit `https://kesho.et/sitemap.xml` to both
 - [ ] List Kesho on AlternativeTo (as a FutureMe alternative) and Product Hunt, and ask the "FutureMe alternatives" roundups to include it

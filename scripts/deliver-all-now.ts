@@ -4,7 +4,8 @@ import { countScheduledLetters } from "@/lib/letters";
 
 // The shutdown promise (SPEC §9): every Scheduled Letter is emailed early rather than lost, through
 // the daily run's own path with the due filter ignored. Each run sends up to the day's budget, so
-// run it once a day until none are left. Without --yes it only counts.
+// run it once a day until none are left. A run with failures waits 2 minutes and retries them
+// (SPEC §7 step 8). Without --yes it only counts.
 //   pnpm tsx --env-file=<target env file> scripts/deliver-all-now.ts [--yes]
 
 const REQUIRED_ENV = ["DATABASE_URL", "LETTER_ENCRYPTION_KEY", "RESEND_API_KEY"];
