@@ -57,7 +57,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
 | `/.well-known/security.txt` | `Contact: mailto:hello@kesho.et` · `Expires: 2027-09-24T00:00:00.000Z` · `Preferred-Languages: en` · `Canonical: https://kesho.et/.well-known/security.txt` |
 
 **Look ([Fonts](https://github.com/wuhibe/kesho/issues/5)):**
-- **Colours:** cream `#f0ebe2` page, paper `#faf7f1` surfaces, ink `#210c02` text and primary pill buttons. Red `#c42121` is used only for emphasis words and destructive actions. Sand `#e1d8c4`, bark `#7b6556`, muted `#5a6a92`.
+- **Colours:** cream `#f0ebe2` page, paper `#faf7f1` surfaces, ink `#210c02` text and primary pill buttons. Red `#c42121` is used only for emphasis words and destructive actions. Sand `#e1d8c4`, bark `#7b6556`, muted `#5a6a92`. The envelope emails tint paper and sand toward red (see §8).
 - **Focus styles:** **neutral ink, never red.** Inputs get an ink border; buttons and links get a soft ink outline.
 - **Fonts:** via `next/font/google`, all OFL:
   - Instrument Sans for UI and headings
@@ -198,12 +198,12 @@ Overflow waits for the next day's run. A missed or doubled cron run is harmless:
 
 ## 8. Email — [Sender identity](https://github.com/wuhibe/kesho/issues/9), [Templates](https://github.com/wuhibe/kesho/issues/10)
 
-Built with React Email, passed to Resend via `react:`, with the plain-text part auto-generated. Fonts are fallback stacks only (Georgia, Helvetica, Courier New). The prototype is on branch `prototype/email-templates`, route `/prototype/emails?variant=W`.
+Built with React Email, passed to Resend via `react:`, with the plain-text part auto-generated. Fonts are fallback stacks only (Georgia, Helvetica, Courier New). The Delivery look follows the prototype on branch `prototype/email-templates`, route `/prototype/emails?variant=W`; the envelope has since moved away from it.
 
 | Email | From | Subject | Look |
 |---|---|---|---|
 | Delivery | `You, from <Mon YYYY> <letters@mail.kesho.et>` | the Letter's subject, else `A letter from <Mon YYYY>`; preheader = first line of the body | **A, letter sheet:** cream page with a paper card, a mono `WRITTEN <date> · DELIVERED <date>` label, the subject, the italic serif "Dear future self," and the serif body. Then a divider, "It's in your archive whenever you want it again. Maybe write back to the next you?" and the button **Write the next one →** |
-| Verify | `Kesho <hello@mail.kesho.et>` | "Confirm your email to seal your letter" | **C, envelope:** ink page, sand flap, red stamp "AWAITING YOUR SEAL", "One click to seal it.", a red button **Confirm & seal my letter**, and fine print (1 h expiry, 7-day draft deletion) |
+| Verify | `Kesho <hello@mail.kesho.et>` | "Confirm your email to seal your letter" | **C, envelope:** one paper surface edge to edge, with no frame or card, and a sand flap that spans any width, so phones get it unscaled, and a sand hairline above the footer. Its paper (`#faf2ef`) and sand (`#e4cbc3`) are the site's tinted toward red: Gmail's app forces its own dark mode and keeps each colour's hue, so the site's yellowish paper darkens to olive and these to brown. Clients that honour `prefers-color-scheme` (Apple Mail) get the envelope's own dark palette instead. Red stamp "AWAITING YOUR SEAL", "One click to seal it.", a red button **Confirm & seal my letter**, and fine print (1 h expiry, 7-day draft deletion) |
 | Reset | same | "Reset your Kesho password" | C, with the stamp "ACCOUNT", the line "Your sealed letters are safe either way." and the button **Choose a new password** |
 | Change email | same | "Confirm your new email" | C (the verify template), with the stamp "ACCOUNT" and the line "Your sealed letters will arrive here." |
 
