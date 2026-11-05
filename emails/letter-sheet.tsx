@@ -3,7 +3,7 @@ import { Body, Button, Container, Head, Heading, Hr, Html, Preview, Text } from 
 import { Footer } from "./footer";
 import { BARK, CREAM, INK, MONO, PAPER, SAND, SANS, SERIF } from "./theme";
 
-// Look A, the letter sheet: the delivery email mirrors the composer (SPEC §8; prototype/email-templates, variant W).
+// Look A, the letter sheet: the delivery email mirrors the composer (SPEC §8, prototype variant W).
 
 type LetterSheetProps = {
   preheader: string;

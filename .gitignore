@@ -8,7 +8,8 @@ next-env.d.ts
 lib/generated/
 .DS_Store
 # local-only: design reference and Claude Code worktrees/settings
-givingli-design/
+design-reference/
+CLAUDE.local.md
 .claude/worktrees/
 .claude/settings.local.json
 .claude/launch.json
