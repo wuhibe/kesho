@@ -26,5 +26,5 @@ export default defineConfig([
   },
   // Next.js requires a default export from these file conventions.
   { files: ["app/**/page.tsx", "app/**/layout.tsx", "app/**/not-found.tsx", "app/**/error.tsx"], rules: { "import/no-default-export": "off" } },
-  globalIgnores([".next/**", "next-env.d.ts", "lib/generated/**", ".claude/**", "givingli-design/**"]),
+  globalIgnores([".next/**", "next-env.d.ts", "lib/generated/**", ".claude/**", "design-reference/**"]),
 ]);

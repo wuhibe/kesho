@@ -42,7 +42,7 @@ Every section links to the ticket that decided it. The planning map is [Wayfinde
 
 ## 3. Pages — [Composer prototype](https://github.com/wuhibe/kesho/issues/7), [Copy](https://github.com/wuhibe/kesho/issues/12)
 
-The chosen design is Variant A, the letter sheet. Its prototype is on branch `prototype/composer-flow`, route `/prototype/composer?variant=A`. The prototype is a reference to rewrite from, not code to promote.
+The chosen design is Variant A, the letter sheet, picked from throwaway prototypes in #7.
 
 | Route | Content |
 |---|---|
@@ -65,7 +65,7 @@ The chosen design is Variant A, the letter sheet. Its prototype is on branch `pr
   - Newsreader for the letter body and archive
   - Zeyada for the salutation only, with `font-synthesis: none`
 - **Motion:** respect `prefers-reduced-motion`.
-- **Brand:** don't copy the givingli brand or its fonts.
+- **Brand:** Kesho's own. No third-party brand marks or commercial fonts.
 - **Logo mark:** "Tomorrow's sun": a paper `#faf7f1` half sun over two horizon bars on a red `#c42121` rounded square. The files are `app/icon.svg` (master), `app/favicon.ico` (16/32/48) and `app/apple-icon.png` (180, full-bleed; iOS rounds it). Next.js serves them by file convention, so no `<link>` tags are needed.
 
 **Copy strings:** no em-dashes; use a middle dot or a full stop. The home `<title>` is "Kesho · letters to your future self", matching the footer; other pages are "<Page> · Kesho" (see SEO).
@@ -198,7 +198,7 @@ Overflow waits for the next day's run. A missed or doubled cron run is harmless:
 
 ## 8. Email — [Sender identity](https://github.com/wuhibe/kesho/issues/9), [Templates](https://github.com/wuhibe/kesho/issues/10)
 
-Built with React Email, passed to Resend via `react:`, with the plain-text part auto-generated. Fonts are fallback stacks only (Georgia, Helvetica, Courier New). The Delivery look follows the prototype on branch `prototype/email-templates`, route `/prototype/emails?variant=W`; the envelope has since moved away from it.
+Built with React Email, passed to Resend via `react:`, with the plain-text part auto-generated. Fonts are fallback stacks only (Georgia, Helvetica, Courier New). The Delivery look follows the email prototype's variant W; the envelope has since moved away from it.
 
 | Email | From | Subject | Look |
 |---|---|---|---|

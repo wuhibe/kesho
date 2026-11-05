@@ -11,8 +11,7 @@ Letters to your future self, emailed on a chosen date. One Next.js app on Vercel
 ## Material outside `main`
 
 - `.env` / `.env.local` (local, gitignored): dev secrets. Production `LETTER_ENCRYPTION_KEY` lives in the owner's password manager; ask for it, and reuse it forever (ADR 0002).
-- `givingli-design/` (local, gitignored): design reference for the `givingli-design` skill. Take colour, spacing and motion from it; fonts come from SPEC §3.
-- UI prototypes live on the branches `prototype/composer-flow` and `prototype/email-templates`. Treat them as reference to rewrite from.
+- `design-reference/` (local, gitignored): the design reference; `CLAUDE.local.md` (local, gitignored) names the skill that reads it. Take colour, spacing and motion from the reference; fonts come from SPEC §3.
 
 ## Repo tooling
 
