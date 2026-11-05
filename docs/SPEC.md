@@ -255,16 +255,16 @@ These are plain-English pages and haven't been reviewed by a lawyer. The full ou
   - Do one restore drill into a scratch Neon branch before launch: `pg_restore --no-owner --no-acl --clean --if-exists --dbname=<scratch branch URL> <dump>`, then compare row counts with `main`.
 
 **Launch checklist:**
-- [ ] Vercel project + Neon integration (per-preview branching off, compute capped at 0.25 CU)
+- [x] Vercel project + Neon integration (per-preview branching off, compute capped at 0.25 CU)
 - [x] Vercel A/CNAME in Cloudflare (DNS only) + `www` → apex redirect
-- [ ] Prod env vars, including the existing encryption key from the password manager
+- [x] Prod env vars, including the existing encryption key from the password manager
 - [x] Resend webhook (prod) + `RESEND_WEBHOOK_SECRET`
 - [x] R2 bucket + token + backup Action + one restore drill
 - [x] `security.txt`, Vercel Web Analytics on
 - [x] Cloudflare Email Routing rule `ops@kesho.et` → owner, for the failure report
-- [ ] **Tighten DMARC to `p=quarantine` ~2026-10-15 to 2026-10-22** (the reminder is in the owner's calendar)
-- [ ] Verify `kesho.et` in Google Search Console and Bing Webmaster Tools (DNS TXT in Cloudflare; ask first), then submit `https://kesho.et/sitemap.xml` to both
-- [ ] List Kesho on AlternativeTo (as a FutureMe alternative) and Product Hunt, and ask the "FutureMe alternatives" roundups to include it
+- [x] **Tighten DMARC to `p=quarantine` ~2026-10-15 to 2026-10-22** (the reminder is in the owner's calendar)
+- [x] Verify `kesho.et` in Google Search Console and Bing Webmaster Tools (DNS TXT in Cloudflare; ask first), then submit `https://kesho.et/sitemap.xml` to both
+- [x] List Kesho on AlternativeTo (as a FutureMe alternative) and Product Hunt, and ask the "FutureMe alternatives" roundups to include it
 - [x] Nameservers → Cloudflare, Cloudflare MFA, Email Routing, DMARC `p=none`, Resend domain verified, restricted Resend keys, prod encryption key backed up
 
 ## 11. Build issues (ordered vertical slices)
