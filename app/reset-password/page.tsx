@@ -11,7 +11,7 @@ const ResetPasswordPage: FC<PageProps<'/reset-password'>> = async ({ searchParam
 
   return (
     <main className='mx-auto max-w-md px-6 py-24'>
-      <div className='rounded-4xl bg-paper p-8'>
+      <div className='rounded-4xl bg-paper p-8 shadow-float'>
         {typeof token === 'string' ? (
           <NewPasswordForm token={token} />
         ) : (

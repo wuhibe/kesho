@@ -16,7 +16,7 @@ export const ConfirmDelete: FC<{ letterId: string; label: string; confirmLabel: 
 
   if (!isConfirming) {
     return (
-      <button type="button" onClick={() => setIsConfirming(true)} className={`${ghostPill} py-2!`}>
+      <button type="button" onClick={() => setIsConfirming(true)} className={ghostPill}>
         {label}
       </button>
     );
@@ -25,10 +25,10 @@ export const ConfirmDelete: FC<{ letterId: string; label: string; confirmLabel: 
   return (
     <form action={submit} className="flex flex-wrap items-center gap-2 text-sm">
       Delete forever?
-      <button disabled={isPending} className={`${dangerPill} py-2!`}>
+      <button disabled={isPending} className={dangerPill}>
         {confirmLabel}
       </button>
-      <button type="button" onClick={() => setIsConfirming(false)} className={`${ghostPill} py-2!`}>
+      <button type="button" onClick={() => setIsConfirming(false)} className={ghostPill}>
         Keep
       </button>
       {error && <Notice>{error}</Notice>}

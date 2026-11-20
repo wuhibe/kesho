@@ -58,7 +58,7 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
             maxLength={SUBJECT_MAX}
             value={draft.subject}
             onChange={(event) => updateDraft({ subject: event.target.value })}
-            className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-2xl font-medium tracking-tight sm:text-3xl placeholder:text-ink/30"
+            className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-2xl font-medium tracking-tight sm:text-3xl placeholder:text-ink/50"
           />
           <p className="mt-8 font-script text-4xl sm:text-5xl">Dear future self,</p>
           <textarea
@@ -67,7 +67,7 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
             maxLength={BODY_MAX}
             value={draft.body}
             onChange={(event) => updateDraft({ body: event.target.value })}
-            className="field-sizing-content mt-4 min-h-48 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/30 md:min-h-80"
+            className="field-sizing-content mt-4 min-h-48 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/50 md:min-h-80"
           />
           <p className="mt-2 text-right font-mono text-xs uppercase text-bark">
             {wordCount} {wordCount === 1 ? "word" : "words"}

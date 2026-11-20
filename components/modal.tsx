@@ -36,7 +36,7 @@ export const Modal: FC<{
           type="button"
           aria-label="Close"
           onClick={() => dialog.current?.close()}
-          className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full text-2xl leading-none text-ink/60 transition-colors hover:bg-sand/60 hover:text-ink"
+          className="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full text-2xl leading-none text-ink/60 transition-colors hover:bg-sand/60 hover:text-ink"
         >
           ×
         </button>

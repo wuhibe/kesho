@@ -47,6 +47,11 @@ typography:
     fontSize: "0.75rem"
     fontWeight: 400
     lineHeight: "1rem"
+  label-micro:
+    fontFamily: "Fragment Mono, ui-monospace, monospace"
+    fontSize: "10px"
+    fontWeight: 400
+    lineHeight: 1
 rounded:
   stamp: "2px"
   envelope: "6px"
@@ -133,7 +138,7 @@ Density is low and the pace is unhurried. One column, generous space, few colour
 A warm, low-chroma paper palette with one saturated red reserved for seals and danger.
 
 ### Primary
-- **ink** (`colors.ink`): Text, primary pill buttons, selected chips and segments, the focus ring (at 35% alpha). Used at reduced alpha for secondary text (`ink/70`), placeholders (`ink/30`), field borders (`ink/20`) and hairlines (`ink/10`).
+- **ink** (`colors.ink`): Text, primary pill buttons, selected chips and segments, the focus ring (at 35% alpha). Used at reduced alpha for secondary text (`ink/70`), placeholders (`ink/50`, 3.5:1 for their large text), field borders (`ink/20`) and hairlines (`ink/10`).
 
 ### Secondary
 - **red** (`colors.red`): The SEALED and PENDING stamps on the envelope, emphasis words ("See you in 365 days."), the Undeliverable mark and banner link, Delete account, and the danger pill. Also the logo mark's square.
@@ -166,7 +171,8 @@ A warm, low-chroma paper palette with one saturated red reserved for seals and d
 - **Body** (Instrument Sans 400, 1rem; 0.875rem in pills, fields and banners): Interface copy. Secondary copy at `ink/70`.
 - **Letter** (Newsreader 400, 1.5rem on 2.5rem ruled lines): The composer body. Archive letters drop to 1.25rem with relaxed leading (1.625) and no rules.
 - **Salutation** (Zeyada, 2.25rem phones / 3rem md+, `font-synthesis: none`): "Dear future self," on the sheet; the envelope address.
-- **Label** (Fragment Mono, 0.75rem, uppercase, bark): Section labels, dates, statuses ("OPENS 24 SEPT 2027 · 365 DAYS"), word count, header and footer links. The sheet's date label adds 0.2em tracking; stamps drop to 10px.
+- **Label** (Fragment Mono, 0.75rem, uppercase, bark): Section labels, dates, statuses ("OPENS 24 SEPT 2027 · 365 DAYS"), word count, header and footer links. The sheet's date label adds 0.2em tracking.
+- **Label micro** (Fragment Mono, 10px, uppercase): Only inside small objects: the envelope's stamp and the calendar's weekday row. Never for anything the Author must read to act.
 
 ### Named Rules
 **The One Job Rule.** Each face has one job. Serif is for Letters, mono is for labels, script is for the salutation. Never set UI in serif or a Letter in sans.
@@ -183,7 +189,7 @@ Responsive behaviour turns on `md` (48rem). On md+ the send bar is the sheet's w
 
 ## Elevation & Depth
 
-Flat by default, with one shadow. Depth means "lifted off the desk": the letter sheet, dialogs, the envelope, the send bar, the floating Send pill and the Undeliverable banner all use the same `float` shadow, a 1px ink hairline at 6% plus a soft 20px drop. Everything else is flat and separated by hairlines or tone (paper on cream). Dialog backdrops dim the desk with ink at 60% (40% for the phone drawer).
+Flat by default, with one shadow. Depth means "lifted off the desk": the letter sheet, dialogs, the envelope, the send bar, the floating Send pill, the reset-password card and the Undeliverable banner all use the same `float` shadow, a 1px ink hairline at 6% plus a soft 20px drop. Everything else is flat and separated by hairlines or tone (paper on cream). Dialog backdrops dim the desk with ink at 60% (40% for the phone drawer).
 
 ### Shadow Vocabulary
 - **float** (`box-shadow: 0 0 0 1px rgb(33 12 2 / 0.06), 0 8px 20px -6px rgb(33 12 2 / 0.25)`): Any paper object resting on the cream desk.
@@ -211,7 +217,7 @@ Soft and unhurried pills; colour changes on hover, nothing moves.
 
 ### Cards / Containers
 - **Letter sheet:** paper, 28px corners, `float`, 24–56px padding. Holds the mono date, the subject, the salutation and the ruled body.
-- **Dialog:** a native `<dialog>`, paper, 32px corners, `float`, 32px padding, max 28rem wide, centred on all sizes; a 40px round × close top-right that washes sand on hover.
+- **Dialog:** a native `<dialog>`, paper, 32px corners, `float`, 32px padding, max 28rem wide, centred on all sizes; a 44px round × close top-right that washes sand on hover.
 - **Banner:** paper, 12px corners, `float`, 16px padding, 0.875rem text.
 
 ### Inputs / Fields
@@ -221,7 +227,7 @@ Soft and unhurried pills; colour changes on hover, nothing moves.
 
 ### Navigation
 - **Site header:** logo mark (20px) and "KESHO" wordmark on the left, links on the right, all mono 0.75rem uppercase. Links are bark and turn ink on hover, each padded to a 44px target. It scrolls away with the page.
-- **Footer:** the same mono caps register in bark: tagline (hidden below sm), Terms, Privacy, email.
+- **Footer:** the same mono caps register in bark: tagline (hidden below sm), Terms, Privacy, email, each link padded to a 44px target.
 
 ### Envelope (signature)
 A 288 × 176px paper envelope tilted -3° with the `float` shadow, a sand triangular flap, "to my future self" in script bottom-left with an optional mono bark note, and a red mono stamp (PENDING or SEALED) top-right. It is the visual proof that a Letter is sealed, used on `/check-inbox`, `/sealed/[id]` and the Open Graph image.
