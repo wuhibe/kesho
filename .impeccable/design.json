@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T00:00:00.000Z",
+  "title": "Design System: Kesho",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "primary", "displayName": "ink", "tonalRamp": ["oklch(15% 0.042 50.0)", "oklch(26% 0.042 50.0)", "oklch(38% 0.042 50.0)", "oklch(50% 0.042 50.0)", "oklch(62% 0.042 50.0)", "oklch(74% 0.042 50.0)", "oklch(85% 0.042 50.0)", "oklch(95% 0.042 50.0)"] },
+      "red": { "role": "secondary", "displayName": "red", "tonalRamp": ["oklch(15% 0.197 27.3)", "oklch(26% 0.197 27.3)", "oklch(38% 0.197 27.3)", "oklch(50% 0.197 27.3)", "oklch(62% 0.197 27.3)", "oklch(74% 0.197 27.3)", "oklch(85% 0.197 27.3)", "oklch(95% 0.197 27.3)"] },
+      "cream": { "role": "neutral", "displayName": "cream", "tonalRamp": ["oklch(15% 0.013 82.4)", "oklch(26% 0.013 82.4)", "oklch(38% 0.013 82.4)", "oklch(50% 0.013 82.4)", "oklch(62% 0.013 82.4)", "oklch(74% 0.013 82.4)", "oklch(85% 0.013 82.4)", "oklch(95% 0.013 82.4)"] },
+      "paper": { "role": "neutral", "displayName": "paper", "tonalRamp": ["oklch(15% 0.009 84.6)", "oklch(26% 0.009 84.6)", "oklch(38% 0.009 84.6)", "oklch(50% 0.009 84.6)", "oklch(62% 0.009 84.6)", "oklch(74% 0.009 84.6)", "oklch(85% 0.009 84.6)", "oklch(95% 0.009 84.6)"] },
+      "sand": { "role": "neutral", "displayName": "sand", "tonalRamp": ["oklch(15% 0.029 86.6)", "oklch(26% 0.029 86.6)", "oklch(38% 0.029 86.6)", "oklch(50% 0.029 86.6)", "oklch(62% 0.029 86.6)", "oklch(74% 0.029 86.6)", "oklch(85% 0.029 86.6)", "oklch(95% 0.029 86.6)"] },
+      "bark": { "role": "neutral", "displayName": "bark", "tonalRamp": ["oklch(15% 0.036 56.1)", "oklch(26% 0.036 56.1)", "oklch(38% 0.036 56.1)", "oklch(50% 0.036 56.1)", "oklch(62% 0.036 56.1)", "oklch(74% 0.036 56.1)", "oklch(85% 0.036 56.1)", "oklch(95% 0.036 56.1)"] },
+      "muted": { "role": "neutral", "displayName": "muted", "tonalRamp": ["oklch(15% 0.066 267.3)", "oklch(26% 0.066 267.3)", "oklch(38% 0.066 267.3)", "oklch(50% 0.066 267.3)", "oklch(62% 0.066 267.3)", "oklch(74% 0.066 267.3)", "oklch(85% 0.066 267.3)", "oklch(95% 0.066 267.3)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The home h1 only, serif italic." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles such as Your letters." },
+      "title": { "displayName": "Title", "purpose": "Dialog titles, the shared Heading, the composer subject." },
+      "body": { "displayName": "Body", "purpose": "Interface copy." },
+      "letter": { "displayName": "Letter", "purpose": "The composer body on ruled lines; Archive letters at 1.25rem." },
+      "salutation": { "displayName": "Salutation", "purpose": "Dear future self, and the envelope address only." },
+      "label": { "displayName": "Label", "purpose": "Mono caps for dates, counts, statuses, section labels and header/footer links." }
+    },
+    "shadows": [
+      { "name": "float", "value": "0 0 0 1px rgb(33 12 2 / 0.06), 0 8px 20px -6px rgb(33 12 2 / 0.25)", "purpose": "Any paper object resting on the cream desk: letter sheet, dialogs, envelope, send bar, banner." }
+    ],
+    "motion": [
+      { "name": "color-transition", "value": "color, background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Hover states on pills, chips and links. All motion collapses under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "40rem" },
+      { "name": "md", "value": "48rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ink Pill",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary action: Send to the future, Write a letter, form submits.",
+      "html": "<button class=\"ds-pill-ink\">Send to the future →</button>",
+      "css": ".ds-pill-ink { background: var(--color-ink, #210c02); color: var(--color-paper, #faf7f1); border: none; border-radius: 9999px; padding: 12px 20px; font: 500 0.875rem/1.25rem 'Instrument Sans', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms; } .ds-pill-ink:hover { background: rgb(33 12 2 / 0.85); } .ds-pill-ink:focus-visible { outline: 2px solid rgb(33 12 2 / 0.35); outline-offset: 2px; } .ds-pill-ink:disabled { background: #e1d8c4; color: #7b6556; cursor: default; }"
+    },
+    {
+      "name": "Ghost Pill",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action next to an ink pill.",
+      "html": "<button class=\"ds-pill-ghost\">My letters</button>",
+      "css": ".ds-pill-ghost { background: transparent; color: #210c02; border: 1px solid rgb(33 12 2 / 0.2); border-radius: 9999px; padding: 12px 20px; font: 500 0.875rem/1.25rem 'Instrument Sans', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms; } .ds-pill-ghost:hover { background: #faf7f1; } .ds-pill-ghost:focus-visible { outline: 2px solid rgb(33 12 2 / 0.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Pill",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Irreversible deletes only.",
+      "html": "<button class=\"ds-pill-danger\">Delete account forever</button>",
+      "css": ".ds-pill-danger { background: #c42121; color: #faf7f1; border: none; border-radius: 9999px; padding: 12px 20px; font: 500 0.875rem/1.25rem 'Instrument Sans', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms; } .ds-pill-danger:hover { background: rgb(196 33 33 / 0.85); } .ds-pill-danger:focus-visible { outline: 2px solid rgb(33 12 2 / 0.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Preset Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Delivery date presets; the selected one fills ink.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\">6 months</button><button class=\"ds-chip ds-chip-on\" aria-pressed=\"true\">1 year</button><button class=\"ds-chip\">3 years</button><button class=\"ds-chip\">Pick a date</button></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 8px; } .ds-chip { background: transparent; color: #210c02; border: 1px solid rgb(33 12 2 / 0.2); border-radius: 9999px; padding: 8px 16px; font: 400 0.875rem/1.25rem 'Instrument Sans', system-ui, sans-serif; cursor: pointer; transition: background-color 150ms, color 150ms; } .ds-chip:hover { background: #faf7f1; } .ds-chip-on, .ds-chip-on:hover { background: #210c02; border-color: #210c02; color: #faf7f1; } .ds-chip:focus-visible { outline: 2px solid rgb(33 12 2 / 0.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled form field in dialogs.",
+      "html": "<label class=\"ds-field\">Email<input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; font: 400 0.875rem/1.25rem 'Instrument Sans', system-ui, sans-serif; color: #7b6556; } .ds-input { background: #fff; color: #210c02; border: 1px solid rgb(33 12 2 / 0.2); border-radius: 12px; padding: 12px 16px; font: 400 1rem/1.5rem 'Instrument Sans', system-ui, sans-serif; } .ds-input:focus-visible { outline: none; border-color: #210c02; }"
+    },
+    {
+      "name": "Site Header",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Mono caps wordmark and links, 44px targets.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\">Kesho</a><span><a class=\"ds-nav-link\" href=\"#\">Your letters</a><a class=\"ds-nav-link\" href=\"#\">Log out</a></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 0; font: 400 0.75rem/1rem 'Fragment Mono', ui-monospace, monospace; text-transform: uppercase; } .ds-nav-brand { display: inline-flex; min-height: 44px; align-items: center; padding: 0 8px; color: #210c02; text-decoration: none; } .ds-nav-link { display: inline-flex; min-height: 44px; align-items: center; padding: 0 8px; color: #7b6556; text-decoration: none; transition: color 150ms; } .ds-nav-link:hover { color: #210c02; } .ds-nav-link:focus-visible { outline: 2px solid rgb(33 12 2 / 0.35); outline-offset: 2px; }"
+    },
+    {
+      "name": "Letter Sheet",
+      "kind": "card",
+      "refersTo": "letter-sheet",
+      "description": "The composer: mono date, subject, script salutation, ruled serif body.",
+      "html": "<section class=\"ds-sheet\"><p class=\"ds-sheet-date\">20 Nov 2026</p><p class=\"ds-sheet-subject\">On turning thirty</p><p class=\"ds-sheet-dear\">Dear future self,</p><p class=\"ds-sheet-body\">I hope you kept the habit of walking in the morning.</p></section>",
+      "css": ".ds-sheet { background: #faf7f1; color: #210c02; border-radius: 28px; padding: 32px 24px; box-shadow: 0 0 0 1px rgb(33 12 2 / 0.06), 0 8px 20px -6px rgb(33 12 2 / 0.25); } .ds-sheet-date { margin: 0; font: 400 0.75rem/1rem 'Fragment Mono', ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.2em; color: #7b6556; } .ds-sheet-subject { margin: 24px 0 0; padding-bottom: 8px; border-bottom: 1px solid rgb(33 12 2 / 0.1); font: 500 1.5rem/2rem 'Instrument Sans', system-ui, sans-serif; letter-spacing: -0.025em; } .ds-sheet-dear { margin: 32px 0 0; font: 400 2.25rem/1 'Zeyada', cursive; font-synthesis: none; } .ds-sheet-body { margin: 16px 0 0; font: 400 1.5rem/2.5rem 'Newsreader', Georgia, serif; background: repeating-linear-gradient(transparent, transparent 39px, rgb(33 12 2 / 0.08) 40px); }"
+    },
+    {
+      "name": "Envelope",
+      "kind": "custom",
+      "description": "Signature: tilted paper envelope with a sand flap, script address and red stamp.",
+      "html": "<div class=\"ds-envelope\"><div class=\"ds-envelope-flap\"></div><div class=\"ds-envelope-to\"><p class=\"ds-envelope-addr\">to my future self</p><p class=\"ds-envelope-note\">Do not open before 20 Nov 2027</p></div><span class=\"ds-envelope-stamp\">Sealed</span></div>",
+      "css": ".ds-envelope { position: relative; width: 288px; height: 176px; transform: rotate(-3deg); border-radius: 6px; background: #faf7f1; box-shadow: 0 0 0 1px rgb(33 12 2 / 0.06), 0 8px 20px -6px rgb(33 12 2 / 0.25); color: #210c02; } .ds-envelope-flap { position: absolute; inset: 0 0 auto 0; height: 96px; background: #e1d8c4; clip-path: polygon(0 0, 100% 0, 50% 100%); } .ds-envelope-to { position: absolute; bottom: 16px; left: 20px; } .ds-envelope-addr { margin: 0; font: 400 1.875rem/1 'Zeyada', cursive; font-synthesis: none; } .ds-envelope-note { margin: 4px 0 0; font: 400 0.75rem/1rem 'Fragment Mono', ui-monospace, monospace; text-transform: uppercase; color: #7b6556; } .ds-envelope-stamp { position: absolute; top: 16px; right: 16px; border: 2px solid #c42121; border-radius: 2px; padding: 4px 8px; font: 400 10px/1 'Fragment Mono', ui-monospace, monospace; text-transform: uppercase; color: #c42121; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sealed Envelope",
+    "overview": "Kesho is stationery. A cream desk holds one sheet of letter paper that lifts off it with a soft shadow; ink writes on it; a red stamp seals it. Every surface borrows from paper goods: the composer is a ruled letter sheet, the confirmation screens are an envelope stamped PENDING or SEALED, dates and statuses are typed in mono like a postmark. The wait between writing and delivery is the product, and the visual system makes that wait physical: sealed things look sealed.\n\nDensity is low and the pace is unhurried. One column, generous space, few colours, almost no motion. Components are soft and unhurried: round pills, hairline rows, a single float shadow. Nothing shouts, nothing nags, and red appears only where something is sealed, emphasised or destroyed.",
+    "keyCharacteristics": [
+      "Warm cream page, paper surfaces, near-black brown ink. No pure black, no pure white page.",
+      "Four typefaces with strict jobs: sans for UI, mono for labels, serif for the letter, script for the salutation only.",
+      "One shadow (`float`) for everything that lifts off the desk.",
+      "Pills for actions, hairline-divided rows for lists.",
+      "Red is a seal, not a colour scheme."
+    ],
+    "rules": [
+      { "name": "The Seal Rule", "body": "Red marks only seals, emphasis words and destructive actions. If removing the red would not change what the Author understands, it should not be red.", "section": "colors" },
+      { "name": "The Neutral Focus Rule", "body": "Focus is never red. Buttons and links get a 2px ink outline at 35% alpha with a 2px offset; inputs swap to a solid ink border.", "section": "colors" },
+      { "name": "The One Job Rule", "body": "Each face has one job. Serif is for Letters, mono is for labels, script is for the salutation. Never set UI in serif or a Letter in sans.", "section": "typography" },
+      { "name": "The Postmark Rule", "body": "Dates, counts and statuses are mono caps in bark. Plain sentences are never mono.", "section": "typography" },
+      { "name": "The One Sheet Rule", "body": "There is one shadow. A surface either lifts like paper (`float`) or lies flat. No second elevation level, no coloured glows.", "section": "elevation" }
+    ],
+    "dos": [
+      "**Do** set every page on cream and every lifted object on paper with the `float` shadow.",
+      "**Do** keep red to seals, emphasis words and destructive actions (The Seal Rule).",
+      "**Do** set dates, counts and statuses in mono caps, bark, 0.75rem (The Postmark Rule).",
+      "**Do** render Letter text in Newsreader on 2.5rem lines, and use Zeyada only for the salutation and envelope address.",
+      "**Do** use full pills for actions and hairline `ink/10` rows for lists.",
+      "**Do** keep focus neutral ink and every target at least 44px.",
+      "**Do** honour `prefers-reduced-motion`; motion stays at colour transitions, the send bar's arrival and the Archive row's + turning to ×."
+    ],
+    "donts": [
+      "**Don't** use red for focus rings, links in general, success states or decoration.",
+      "**Don't** add a second shadow, gradients (beyond the ruled lines), glows or glassmorphism.",
+      "**Don't** use pure black text or a pure white page; white is for input fields only.",
+      "**Don't** set interface copy in serif or script, or mono for running sentences.",
+      "**Don't** hint at a Sealed body anywhere: no blurred previews, excerpts or peeking envelopes.",
+      "**Don't** use em-dashes in copy; use a middle dot or a full stop.",
+      "**Don't** introduce third-party brand marks or commercial fonts."
+    ]
+  }
+}

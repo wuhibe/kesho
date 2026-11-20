@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { FC } from "react";
 import { Envelope } from "@/components/envelope";
-import { Notice } from "@/components/notice";
+import { Heading } from "@/components/heading";
 import { ghostPill, inkPill } from "@/components/pill";
 import { auth } from "@/lib/auth";
 import { LINK_EXPIRED_LOG_IN } from "@/lib/copy";
@@ -22,7 +22,9 @@ const SealedPage: FC<PageProps<"/sealed/[id]">> = async ({ params, searchParams 
     return (
       <main className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 pb-24 pt-16 text-center">
         <Envelope stamp="Pending" />
-        <Notice>{LINK_EXPIRED_LOG_IN}</Notice>
+        <div className="max-w-md">
+          <Heading>{LINK_EXPIRED_LOG_IN}</Heading>
+        </div>
         <Link href="/?auth=login" className={inkPill}>
           Log in
         </Link>

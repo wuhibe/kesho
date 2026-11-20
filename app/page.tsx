@@ -27,11 +27,12 @@ const Home: FC<PageProps<"/">> = async ({ searchParams }) => {
 
   return (
     <main className="mx-auto max-w-3xl px-6 pb-16 pt-8 md:pt-14">
-      <p className="font-serif text-sm text-bark">
-        <b className="font-semibold text-ink">kesho</b> <span className="font-mono text-xs">/ˈkɛ.ʃɔ/</span>{" "}
+      <p className="font-serif text-sm text-bark md:text-base">
+        <b className="font-semibold text-ink">kesho</b> <span className="font-mono text-xs md:text-sm">/ˈkɛ.ʃɔ/</span>{" "}
         <i>Swahili, adverb.</i> Tomorrow.
       </p>
-      <h1 className="mt-6 font-serif text-2xl italic leading-tight md:mt-10 md:text-4xl">
+      {/* Grows with the viewport so it anchors wide screens; phones keep the smaller #58 size. */}
+      <h1 className="mt-6 text-balance font-serif text-2xl italic leading-tight md:mt-10 md:text-[clamp(3rem,4.4vw,4.5rem)]">
         Write to yourself. We&apos;ll keep it sealed and email it back on the day you choose.
       </h1>
       <Composer

@@ -25,14 +25,21 @@ export const DeliveryCalendar: FC<{ draft: Draft; today: string | null; delivery
   const close = () => dialog.current?.close();
 
   // Each breakpoint renders its own copy of the picker; the other one's open modal would be hidden.
+  // On md+ the popover is placed once against the viewport, and the sticky send bar can scroll away
+  // under it, so scrolling closes it rather than leaving it behind.
   useEffect(() => {
     const wide = matchMedia(WIDE);
+    const closeOnWideScroll = () => wide.matches && close();
     wide.addEventListener("change", close);
-    return () => wide.removeEventListener("change", close);
+    addEventListener("scroll", closeOnWideScroll, { passive: true });
+    return () => {
+      wide.removeEventListener("change", close);
+      removeEventListener("scroll", closeOnWideScroll);
+    };
   }, []);
 
   const open = () => {
-    // The top layer places the dialog against the viewport, so the popover is pinned above the chip.
+    // The top layer places the dialog against the viewport, so the popover sits above the chip where it is now.
     const chipBox = opener.current?.getBoundingClientRect();
     setPopoverPosition(
       chipBox && matchMedia(WIDE).matches
