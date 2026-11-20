@@ -21,8 +21,9 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
   const [isSealing, startSealing] = useTransition();
 
   const deliveryDate = today && deliveryDateOf(draft, today);
+  const hasBody = draft.body.trim() !== "";
   const letter: LetterInput | null =
-    deliveryDate && draft.body.trim()
+    deliveryDate && hasBody
       ? { id: draft.id, subject: draft.subject, body: draft.body, deliveryDate, timeZone: localTimeZone() }
       : null;
   const wordCount = draft.body.split(/\s+/).filter(Boolean).length;
@@ -41,41 +42,46 @@ export const Composer: FC<{ isSignedIn: boolean; openAuth: AuthMode | null }> = 
         Send to the future →
       </button>
       {error && <Notice>{error}</Notice>}
+      {/* Only seen in the phone drawer: the md+ bar stays hidden until there is a body. */}
+      {!hasBody && <p className="font-mono text-xs uppercase text-bark">Write a line to send</p>}
     </div>
   );
 
   return (
     <>
-      <section className="mt-6 rounded-[28px] bg-paper px-6 py-8 shadow-float md:px-14 md:py-14">
-        <p className="min-h-4 font-mono text-xs uppercase tracking-[0.2em] text-bark">{today && formatDate(today)}</p>
-        <input
-          aria-label="Subject (optional)"
-          placeholder="Subject (optional)"
-          maxLength={SUBJECT_MAX}
-          value={draft.subject}
-          onChange={(event) => updateDraft({ subject: event.target.value })}
-          className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-2xl font-medium tracking-tight sm:text-3xl placeholder:text-ink/30"
-        />
-        <p className="mt-8 font-script text-4xl sm:text-5xl">Dear future self,</p>
-        <textarea
-          aria-label="Your letter"
-          placeholder="Start writing…"
-          maxLength={BODY_MAX}
-          value={draft.body}
-          onChange={(event) => updateDraft({ body: event.target.value })}
-          className="field-sizing-content mt-4 min-h-48 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/30 md:min-h-120"
-        />
-        <p className="mt-2 text-right font-mono text-xs uppercase text-bark">
-          {wordCount} {wordCount === 1 ? "word" : "words"}
-        </p>
-      </section>
+      <div>
+        <section className="mt-6 rounded-[28px] bg-paper px-6 py-8 shadow-float md:px-14 md:py-14">
+          <p className="min-h-4 font-mono text-xs uppercase tracking-[0.2em] text-bark">{today && formatDate(today)}</p>
+          <input
+            aria-label="Subject (optional)"
+            placeholder="Subject (optional)"
+            maxLength={SUBJECT_MAX}
+            value={draft.subject}
+            onChange={(event) => updateDraft({ subject: event.target.value })}
+            className="mt-6 w-full border-b border-ink/10 bg-transparent pb-2 text-2xl font-medium tracking-tight sm:text-3xl placeholder:text-ink/30"
+          />
+          <p className="mt-8 font-script text-4xl sm:text-5xl">Dear future self,</p>
+          <textarea
+            aria-label="Your letter"
+            placeholder="Start writing…"
+            maxLength={BODY_MAX}
+            value={draft.body}
+            onChange={(event) => updateDraft({ body: event.target.value })}
+            className="field-sizing-content mt-4 min-h-48 w-full resize-none border-b border-transparent bg-transparent bg-[repeating-linear-gradient(transparent,transparent_39px,rgb(33_12_2/0.08)_40px)] font-serif text-2xl leading-10 placeholder:text-ink/30 md:min-h-80"
+          />
+          <p className="mt-2 text-right font-mono text-xs uppercase text-bark">
+            {wordCount} {wordCount === 1 ? "word" : "words"}
+          </p>
+        </section>
 
-      {/* data-send-bar: the root layout pads the page for this bar (md+) and the phone Send button. */}
-      <div
-        data-send-bar
-        className="fixed inset-x-6 bottom-6 z-10 mx-auto flex max-w-3xl items-center justify-between gap-4 rounded-2xl bg-cream/95 p-4 px-6 shadow-float max-md:hidden">
-        {picker}
-        {send}
+        {/* Sticky inside the wrapper: pinned while the sheet is on screen, then it rests under the sheet. data-send-bar
+            tells the root layout to pad the page for the phone Send button. */}
+        <div
+          data-send-bar
+          className={`sticky bottom-6 z-10 mt-4 flex items-center justify-between gap-4 rounded-2xl bg-cream/95 p-4 px-6 shadow-float transition duration-300 ease-out max-md:hidden ${hasBody ? "" : "pointer-events-none invisible translate-y-3 opacity-0"}`}>
+          {picker}
+          {send}
+        </div>
       </div>
       <SendDrawer>
         {picker}

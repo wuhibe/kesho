@@ -30,8 +30,8 @@ const RootLayout: FC<LayoutProps<"/">> = ({ children }) => {
       lang="en"
       className={`${instrumentSans.variable} ${fragmentMono.variable} ${newsreader.variable} ${zeyada.variable}`}
     >
-      {/* The composer's send bar (md+) and phone Send button float over the bottom of the page, so the page makes room. */}
-      <body className="flex min-h-dvh flex-col font-sans antialiased has-data-send-bar:pb-24 md:has-data-send-bar:pb-28">
+      {/* The phone Send button floats over the bottom of the page, so the page makes room; the md+ send bar is sticky, in flow. */}
+      <body className="flex min-h-dvh flex-col font-sans antialiased max-md:has-data-send-bar:pb-24">
         <SiteHeader />
         <div className="flex-1">{children}</div>
         <Footer />
